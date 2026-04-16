@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ottimo Mobility — Pricing Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface2: #f2f1ed;
+    --border: #e0deda;
+    --border2: #cccac4;
+    --text: #1a1916;
+    --text2: #6b6860;
+    --text3: #9e9c97;
+    --accent: #1a1916;
+    --green: #2d6a4f;
+    --green-bg: #eaf4ee;
+    --amber: #92520a;
+    --amber-bg: #fdf3e3;
+    --red: #9b2c2c;
+    --red-bg: #fdf0f0;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* LAYOUT */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-header h1 {
+    font-size: 18px;
+    font-weight: normal;
+    letter-spacing: 0.01em;
+    color: var(--text);
+  }
+  .app-header .sub {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+    margin-top: 2px;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .main { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title h2 {
+    font-size: 15px;
+    font-weight: normal;
+    letter-spacing: 0.02em;
+  }
+  .card-title .badge {
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .toggle-btn {
+    font-size: 12px;
+    color: var(--text3);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: all 0.15s;
+  }
+  .toggle-btn:hover { background: var(--surface2); color: var(--text2); }
+
+  .product-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .product-toggle label { font-size: 13px; color: var(--text2); }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border2);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .switch .slider:before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider:before { transform: translateX(16px); }
+
+  /* FORMS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .field input[type=number], .field input[type=text], .field select, .field textarea {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--border2);
+  }
+  .field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .field .computed {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+    padding: 3px 0;
+  }
+
+  .section-divider {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 20px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* SLIDERS */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .slider-row label {
+    font-size: 12px;
+    color: var(--text2);
+    width: 140px;
+    flex-shrink: 0;
+  }
+  .slider-row input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 3px;
+  }
+  .slider-row .val {
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    min-width: 48px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  /* SUMMARY PANEL */
+  .summary-panel {
+    background: var(--text);
+    color: #f7f6f2;
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    position: sticky;
+    top: 80px;
+  }
+  .summary-panel h2 {
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9e9c97;
+    margin-bottom: 16px;
+    font-weight: normal;
+  }
+  .sum-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .sum-line .lbl { color: #a09e99; }
+  .sum-line .amt { font-family: 'Courier New', monospace; }
+  .sum-line.total {
+    padding-top: 12px;
+    margin-top: 4px;
+    border-bottom: none;
+    font-size: 15px;
+  }
+  .sum-line.total .amt { color: #e8e4db; }
+  .sum-big {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+  }
+  .sum-big .big-label { font-size: 11px; color: #9e9c97; font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sum-big .big-val { font-size: 28px; margin-top: 4px; letter-spacing: -0.02em; }
+  .sum-big .big-sub { font-size: 12px; color: #9e9c97; margin-top: 4px; font-family: 'Courier New', monospace; }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .metric-mini {
+    background: rgba(255,255,255,0.06);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .metric-mini .ml { font-size: 10px; color: #9e9c97; font-family: 'Courier New', monospace; text-transform: uppercase; }
+  .metric-mini .mv { font-size: 16px; margin-top: 2px; font-family: 'Courier New', monospace; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: 'Georgia', serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--text);
+    color: #f7f6f2;
+    border-color: var(--text);
+  }
+  .btn-primary:hover { background: #333; }
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border-color: var(--border2);
+  }
+  .btn-outline:hover { background: var(--surface2); }
+  .btn-pdf {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+    width: 100%;
+    justify-content: center;
+    margin-top: 16px;
+    padding: 12px;
+    font-size: 14px;
+  }
+  .btn-pdf:hover { background: #245a41; }
+
+  /* PRODUCT SECTION */
+  .product-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .product-card.disabled { opacity: 0.45; }
+  .product-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .product-card-header h3 { font-size: 14px; font-weight: normal; flex: 1; }
+  .product-cost { font-family: 'Courier New', monospace; font-size: 13px; color: var(--text2); }
+  .product-body { padding: 20px; display: none; }
+  .product-body.open { display: block; }
+
+  /* COLLAPSIBLE */
+  .collapse-content { display: none; }
+  .collapse-content.open { display: block; }
+
+  /* TAG */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--amber-bg);
+    color: var(--amber);
+    border: 1px solid #f5d89e;
+  }
+  .tag.green {
+    background: var(--green-bg);
+    color: var(--green);
+    border-color: #a8d8be;
+  }
+
+  /* PDF PREVIEW */
+  .pdf-meta {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .pdf-meta h3 {
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text2);
+    margin-bottom: 16px;
+    font-weight: normal;
+  }
+
+  /* TWO-COL LAYOUT */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: start;
+  }
+  .left-col { min-width: 0; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .two-col { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .app-header { padding: 16px 20px; }
+    .main { padding: 16px 12px 60px; }
+  }
+
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  .info-note {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'Courier New', monospace;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>Ottimo Mobility — Pricing Calculator</h1>
+    <div class="sub">Internal use only · v1.0</div>
+  </div>
+  <div class="header-right">
+    <span id="header-total" style="font-family:'Courier New',monospace;font-size:15px;color:var(--text2);">€ 0</span>
+    <button class="btn btn-outline" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+<div class="main">
+<div class="two-col">
+
+<!-- LEFT COLUMN -->
+<div class="left-col">
+
+<!-- CLIENT INFO -->
+<div class="card">
+  <div class="card-header" onclick="toggleCollapse('client-body')">
+    <div class="card-title">
+      <h2>Client Information</h2>
+    </div>
+    <button class="toggle-btn" id="client-toggle">−</button>
+  </div>
+  <div class="collapse-content open" id="client-body">
+    <div class="grid-2" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Client name</label>
+        <input type="text" id="client-name" placeholder="Demo Italia s.r.l." oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Sector</label>
+        <input type="text" id="client-sector" placeholder="Automotive">
+      </div>
+    </div>
+    <div class="grid-2" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Contact person</label>
+        <input type="text" id="client-contact" placeholder="Name & title">
+      </div>
+      <div class="field">
+        <label>Number of employees</label>
+        <input type="number" id="emp" value="2500" min="1" step="100" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid-3" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Contract duration (years)</label>
+        <input type="number" id="yrs" value="3" min="1" max="10" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Overhead (%)</label>
+        <input type="number" id="oh" value="20" min="0" max="100" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Profit margin (%)</label>
+        <input type="number" id="mg" value="30" min="0" max="90" step="1" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Acquisition cost (€ one-off)</label>
+        <input type="number" id="acq" value="800" min="0" step="50" oninput="calc()">
+      </div>
+      <div class="field" style="align-self:end;">
+        <div class="computed" style="padding:7px 0;font-size:12px;color:var(--text3);font-family:'Courier New',monospace;">One-off cost, independent of products selected</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILITY MANAGEMENT -->
+<div class="card">
+  <div class="card-header" onclick="toggleCollapse('mm-body')">
+    <div class="card-title">
+      <h2>Mobility Management</h2>
+      <span class="badge">PSCL / WFP</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="mm-cost-header">€ 0</span><span id="mm-cost-header-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+      <button class="toggle-btn" id="mm-toggle">−</button>
+    </div>
+  </div>
+  <div class="collapse-content open" id="mm-body">
+    <div class="product-toggle">
+      <label class="switch"><input type="checkbox" id="mm-on" checked onchange="calc()"><span class="slider"></span></label>
+      <label>Include this product</label>
+    </div>
+
+    <div class="section-divider">Product costs</div>
+    <div class="grid-4" style="margin-bottom:12px;">
+      <div class="field">
+        <label>AM product hours</label>
+        <input type="number" id="mm-h1" value="10" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>AM hourly rate (€)</label>
+        <input type="number" id="mm-r1" value="30" min="0" step="5" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>PSCL writing hours</label>
+        <input type="number" id="mm-h2" value="10" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>PSCL hourly rate (€)</label>
+        <input type="number" id="mm-r2" value="20" min="0" step="5" oninput="calc()">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Data purchase (€ per employee)</label>
+        <input type="number" id="mm-dpu" value="0.10" min="0" step="0.01" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="computed" id="mm-data-computed">= € 0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILITY SERVICES -->
+<div class="card">
+  <div class="card-header" onclick="toggleCollapse('ms-body')">
+    <div class="card-title">
+      <h2>Mobility Services</h2>
+      <span class="badge">7 products</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="ms-cost-header">€ 0</span><span id="ms-cost-header-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+      <button class="toggle-btn" id="ms-toggle">−</button>
+    </div>
+  </div>
+  <div class="collapse-content open" id="ms-body">
+
+    <!-- CARPOOL -->
+    <div class="product-card" id="pc-carpool">
+      <div class="product-card-header" onclick="toggleProduct('carpool')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="carpool-on" checked onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>Carpool</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="carpool-cost">€ 0</span><span id="carpool-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="carpool-arrow">›</span>
+      </div>
+      <div class="product-body" id="carpool-body">
+        <div id="carpool-fields"></div>
+      </div>
+    </div>
+
+    <!-- SHUTTLE -->
+    <div class="product-card" id="pc-shuttle">
+      <div class="product-card-header" onclick="toggleProduct('shuttle')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="shuttle-on" checked onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>Shuttle</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="shuttle-cost">€ 0</span><span id="shuttle-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="shuttle-arrow">›</span>
+      </div>
+      <div class="product-body" id="shuttle-body">
+        <div id="shuttle-fields"></div>
+      </div>
+    </div>
+
+    <!-- PULSE -->
+    <div class="product-card" id="pc-pulse">
+      <div class="product-card-header" onclick="toggleProduct('pulse')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="pulse-on" checked onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>Pulse</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="pulse-cost">€ 0</span><span id="pulse-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="pulse-arrow">›</span>
+      </div>
+      <div class="product-body" id="pulse-body">
+        <div id="pulse-fields"></div>
+      </div>
+    </div>
+
+    <!-- INCENTIVES -->
+    <div class="product-card" id="pc-incentives">
+      <div class="product-card-header" onclick="toggleProduct('incentives')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="incentives-on" checked onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>Incentives</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="incentives-cost">€ 0</span><span id="incentives-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="incentives-arrow">›</span>
+      </div>
+      <div class="product-body" id="incentives-body">
+        <div id="incentives-fields"></div>
+      </div>
+    </div>
+
+    <!-- DESKRESERVATION -->
+    <div class="product-card" id="pc-desk">
+      <div class="product-card-header" onclick="toggleProduct('desk')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="desk-on" checked onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>DeskReservation</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="desk-cost">€ 0</span><span id="desk-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="desk-arrow">›</span>
+      </div>
+      <div class="product-body" id="desk-body">
+        <div id="desk-fields"></div>
+      </div>
+    </div>
+
+    <!-- OFFICEPARKING -->
+    <div class="product-card" id="pc-parking">
+      <div class="product-card-header" onclick="toggleProduct('parking')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="parking-on" checked onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>OfficeParking</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="parking-cost">€ 0</span><span id="parking-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="parking-arrow">›</span>
+      </div>
+      <div class="product-body" id="parking-body">
+        <div id="parking-fields"></div>
+      </div>
+    </div>
+
+    <!-- EXCLUSIVE SHARING -->
+    <div class="product-card" id="pc-sharing">
+      <div class="product-card-header" onclick="toggleProduct('sharing')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="sharing-on" checked onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>Exclusive Sharing</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="sharing-cost">€ 0</span><span id="sharing-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="sharing-arrow">›</span>
+      </div>
+      <div class="product-body" id="sharing-body">
+        <div id="sharing-fields"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PDF META -->
+<div class="pdf-meta">
+  <h3>Submission details</h3>
+  <div class="grid-2" style="margin-bottom:12px;">
+    <div class="field">
+      <label>Account Manager name</label>
+      <input type="text" id="am-name" placeholder="Full name">
+    </div>
+    <div class="field">
+      <label>Approving Manager</label>
+      <input type="text" id="mgr-name" placeholder="Full name">
+    </div>
+  </div>
+  <div class="field">
+    <label>Notes / remarks</label>
+    <textarea id="am-notes" placeholder="Any context, assumptions, or strategic notes for the approving manager…"></textarea>
+  </div>
+</div>
+
+</div><!-- end left-col -->
+
+<!-- RIGHT COLUMN: SUMMARY PANEL -->
+<div>
+  <div class="summary-panel">
+    <h2>Cost Summary</h2>
+    <div id="summary-lines"></div>
+    <div class="sum-big">
+      <div class="big-label">Total selling price</div>
+      <div class="big-val" id="sum-price">€ 0</div>
+      <div class="big-sub" id="sum-duration">over 3 years</div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-mini">
+        <div class="ml">Per year</div>
+        <div class="mv" id="sum-per-year">€ 0</div>
+      </div>
+      <div class="metric-mini">
+        <div class="ml">Per employee/yr</div>
+        <div class="mv" id="sum-per-emp">€ 0.00</div>
+      </div>
+      <div class="metric-mini">
+        <div class="ml">Cost price</div>
+        <div class="mv" id="sum-cost">€ 0</div>
+      </div>
+      <div class="metric-mini">
+        <div class="ml">Gross profit</div>
+        <div class="mv" id="sum-profit">€ 0</div>
+      </div>
+    </div>
+    <button class="btn btn-pdf" onclick="generatePDF()">↓ Download PDF</button>
+  </div>
+</div>
+
+</div><!-- end two-col -->
+</div><!-- end main -->
+
+<script>
+// ─── HELPERS ───────────────────────────────────────────────
+function v(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
+function s(id) { return document.getElementById(id)?.value || ''; }
+function checked(id) { return document.getElementById(id)?.checked ?? false; }
+function setEl(id, html) { const el = document.getElementById(id); if(el) el.innerHTML = html; }
+function fmtE(n) { return '€ ' + Math.round(n).toLocaleString('de-DE'); }
+function fmtD(n) { return '€ ' + n.toLocaleString('de-DE', {minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// ─── COLLAPSIBLES ──────────────────────────────────────────
+function toggleCollapse(id) {
+  const el = document.getElementById(id);
+  const isOpen = el.classList.contains('open');
+  el.classList.toggle('open', !isOpen);
+  const btn = document.getElementById(id.replace('-body','-toggle'));
+  if(btn) btn.textContent = isOpen ? '+' : '−';
+}
+function toggleProduct(name) {
+  const body = document.getElementById(name+'-body');
+  const arrow = document.getElementById(name+'-arrow');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if(arrow) arrow.textContent = isOpen ? '›' : '‹';
+}
+
+// ─── STANDARD PRODUCT FIELDS ──────────────────────────────
+function renderStandardFields(name, defaults) {
+  const d = Object.assign({ userPct: 3, ticketPct: 8, ticketCost: 5, dataCost: 0.01, amHours: 10, amRate: 30 }, defaults);
+  return `
+    <div class="section-divider">Customer Support</div>
+    <div class="grid-4" style="margin-bottom:10px;">
+      <div class="field">
+        <label>Eligible employees</label>
+        <input type="number" id="${name}-eligible" value="" placeholder="= all employees" min="0" oninput="calc()">
+        <div class="info-note">Leave blank to use total headcount</div>
+      </div>
+      <div class="field">
+        <label>Active user rate (%)</label>
+        <input type="number" id="${name}-userpct" value="${d.userPct}" min="0" max="100" step="0.1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Monthly ticket ratio (%)</label>
+        <input type="number" id="${name}-ticketpct" value="${d.ticketPct}" min="0" max="100" step="0.1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Cost per ticket (€)</label>
+        <input type="number" id="${name}-ticketcost" value="${d.ticketCost}" min="0" step="0.5" oninput="calc()">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>&nbsp;</label>
+      <div class="computed" id="${name}-support-computed">= € 0 / year</div>
+    </div>
+    <div class="section-divider">Data</div>
+    <div class="grid-2" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Data cost per active user (€/year)</label>
+        <input type="number" id="${name}-datacost" value="${d.dataCost}" min="0" step="0.001" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="computed" id="${name}-data-computed">= € 0 / year</div>
+      </div>
+    </div>
+    <div class="section-divider">Account Management</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>AM hours per year</label>
+        <input type="number" id="${name}-amhours" value="${d.amHours}" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>AM hourly rate (€)</label>
+        <input type="number" id="${name}-amrate" value="${d.amRate}" min="0" step="5" oninput="calc()">
+      </div>
+    </div>
+  `;
+}
+
+function calcStandard(name, empTotal) {
+  const eligible = v(name+'-eligible') || empTotal;
+  const userPct = v(name+'-userpct') / 100;
+  const ticketPct = v(name+'-ticketpct') / 100;
+  const ticketCost = v(name+'-ticketcost');
+  const dataCost = v(name+'-datacost');
+  const amHours = v(name+'-amhours');
+  const amRate = v(name+'-amrate');
+
+  const activeUsers = eligible * userPct;
+  const ticketsPerMonth = activeUsers * ticketPct;
+  const supportPerYear = ticketsPerMonth * 12 * ticketCost;
+  const dataPerYear = activeUsers * dataCost;
+  const amPerYear = amHours * amRate;
+
+  setEl(name+'-support-computed', `= ${fmtE(supportPerYear)} / year (${Math.round(ticketsPerMonth)} tickets/month × ${Math.round(activeUsers)} active users)`);
+  setEl(name+'-data-computed', `= ${fmtE(dataPerYear)} / year (${Math.round(activeUsers)} active users)`);
+
+  return supportPerYear + dataPerYear + amPerYear; // annual cost
+}
+
+// ─── RENDER ALL PRODUCT FIELDS ────────────────────────────
+function initFields() {
+  ['carpool','shuttle','pulse','desk','parking'].forEach(name => {
+    setEl(name+'-fields', renderStandardFields(name));
+  });
+
+  setEl('incentives-fields', renderStandardFields('incentives') + `
+    <div class="section-divider">Additional — Incentives</div>
+    <div class="grid-3">
+      <div class="field">
+        <label>Project mgmt hours/yr</label>
+        <input type="number" id="incentives-pmhours" value="50" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>PM hourly rate (€)</label>
+        <input type="number" id="incentives-pmrate" value="30" min="0" step="5" oninput="calc()">
+      </div>
+      <div class="field" style="align-self:end;">
+        <div class="computed" id="incentives-pm-computed">= € 0 / year</div>
+      </div>
+      <div class="field">
+        <label>Communication hours/yr</label>
+        <input type="number" id="incentives-comhours" value="50" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Comm. hourly rate (€)</label>
+        <input type="number" id="incentives-comrate" value="30" min="0" step="5" oninput="calc()">
+      </div>
+      <div class="field" style="align-self:end;">
+        <div class="computed" id="incentives-com-computed">= € 0 / year</div>
+      </div>
+      <div class="field">
+        <label>Voucher mgmt hours/yr</label>
+        <input type="number" id="incentives-vouchours" value="50" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Voucher hourly rate (€)</label>
+        <input type="number" id="incentives-voucrate" value="30" min="0" step="5" oninput="calc()">
+      </div>
+      <div class="field" style="align-self:end;">
+        <div class="computed" id="incentives-vouc-computed">= € 0 / year</div>
+      </div>
+    </div>
+  `);
+
+  setEl('sharing-fields', renderStandardFields('sharing') + `
+    <div class="section-divider">Hardware installation</div>
+    <div class="grid-4" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Number of cars</label>
+        <input type="number" id="sharing-cars" value="0" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Install cost per car (€)</label>
+        <input type="number" id="sharing-carcost" value="1000" min="0" step="50" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Number of bikes</label>
+        <input type="number" id="sharing-bikes" value="0" min="0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Install cost per bike (€)</label>
+        <input type="number" id="sharing-bikecost" value="200" min="0" step="50" oninput="calc()">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <label>&nbsp;</label>
+      <div class="computed" id="sharing-hw-computed">= € 0 one-off</div>
+    </div>
+    <div class="section-divider">Software licence (NL)</div>
+    <div class="grid-2" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Software cost per vehicle (€/month)</label>
+        <input type="number" id="sharing-swcost" value="15" min="0" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="computed" id="sharing-sw-computed">= € 0 / year</div>
+      </div>
+    </div>
+    <div class="section-divider">Additional services (e.g. cleaning)</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Additional services cost (€/year)</label>
+        <input type="number" id="sharing-extra" value="0" min="0" step="100" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <input type="text" id="sharing-extra-desc" placeholder="e.g. Cleaning contract" oninput="calc()">
+      </div>
+    </div>
+  `);
+}
+
+// ─── MAIN CALC ─────────────────────────────────────────────
+function calc() {
+  const emp = v('emp') || 1;
+  const yrs = v('yrs') || 1;
+  const oh = v('oh') / 100;
+  const mg = v('mg') / 100;
+
+  // ── Mobility Management ──
+  let mm = 0;
+  if (checked('mm-on')) {
+    const c1 = v('mm-h1') * v('mm-r1');
+    const c2 = v('mm-h2') * v('mm-r2');
+    const dataTotal = emp * v('mm-dpu');
+    setEl('mm-data-computed', `= ${fmtE(dataTotal)} (${emp.toLocaleString('de-DE')} employees × € ${v('mm-dpu').toFixed(2)})`);
+    mm = c1 + c2 + dataTotal;
+  }
+
+  // ── Standard products ──
+  let carpool = 0, shuttle = 0, pulse = 0, desk = 0, parking = 0;
+  if (checked('carpool-on')) carpool = calcStandard('carpool', emp) * yrs;
+  if (checked('shuttle-on')) shuttle = calcStandard('shuttle', emp) * yrs;
+  if (checked('pulse-on')) pulse = calcStandard('pulse', emp) * yrs;
+  if (checked('desk-on')) desk = calcStandard('desk', emp) * yrs;
+  if (checked('parking-on')) parking = calcStandard('parking', emp) * yrs;
+
+  // ── Incentives ──
+  let incentives = 0;
+  if (checked('incentives-on')) {
+    const base = calcStandard('incentives', emp);
+    const pmYr = v('incentives-pmhours') * v('incentives-pmrate');
+    const comYr = v('incentives-comhours') * v('incentives-comrate');
+    const voucYr = v('incentives-vouchours') * v('incentives-voucrate');
+    setEl('incentives-pm-computed', `= ${fmtE(pmYr)} / year`);
+    setEl('incentives-com-computed', `= ${fmtE(comYr)} / year`);
+    setEl('incentives-vouc-computed', `= ${fmtE(voucYr)} / year`);
+    incentives = (base + pmYr + comYr + voucYr) * yrs;
+  }
+
+  // ── Exclusive Sharing ──
+  let sharing = 0;
+  if (checked('sharing-on')) {
+    const base = calcStandard('sharing', emp);
+    const cars = v('sharing-cars');
+    const bikes = v('sharing-bikes');
+    const vehicles = cars + bikes;
+    const hwCost = cars * v('sharing-carcost') + bikes * v('sharing-bikecost');
+    const swPerYear = vehicles * v('sharing-swcost') * 12;
+    const extraPerYear = v('sharing-extra');
+    setEl('sharing-hw-computed', `= ${fmtE(hwCost)} one-off (${Math.round(cars)} cars + ${Math.round(bikes)} bikes)`);
+    setEl('sharing-sw-computed', `= ${fmtE(swPerYear)} / year (${Math.round(vehicles)} vehicles × € ${v('sharing-swcost')}/month)`);
+    sharing = base * yrs + hwCost + (swPerYear + extraPerYear) * yrs;
+  }
+
+  // ── Totals ──
+  const acq = v('acq');
+  const direct = acq + mm + carpool + shuttle + pulse + incentives + desk + parking + sharing;
+  const ohAmt = direct * oh;
+  const cost = direct + ohAmt;
+  const marginAmt = mg < 1 ? cost * (mg / (1 - mg)) : 0;
+  const price = cost + marginAmt;
+  const pricePerYear = price / yrs;
+  const pricePerEmpYear = price / emp / yrs;
+
+  // ── Update product cost badges ──
+  const durLabel = `${Math.round(yrs)} yr${yrs>1?'s':''}`;
+  const allBadges = ['mm-cost-header','carpool-cost','shuttle-cost','pulse-cost','incentives-cost','desk-cost','parking-cost','sharing-cost','ms-cost-header'];
+  allBadges.forEach(id => setEl(id+'-dur', durLabel));
+
+  setEl('mm-cost-header', checked('mm-on') ? fmtE(mm) : '—');
+  setEl('carpool-cost', checked('carpool-on') ? fmtE(carpool) : '—');
+  setEl('shuttle-cost', checked('shuttle-on') ? fmtE(shuttle) : '—');
+  setEl('pulse-cost', checked('pulse-on') ? fmtE(pulse) : '—');
+  setEl('incentives-cost', checked('incentives-on') ? fmtE(incentives) : '—');
+  setEl('desk-cost', checked('desk-on') ? fmtE(desk) : '—');
+  setEl('parking-cost', checked('parking-on') ? fmtE(parking) : '—');
+  setEl('sharing-cost', checked('sharing-on') ? fmtE(sharing) : '—');
+  setEl('ms-cost-header', fmtE(carpool + shuttle + pulse + incentives + desk + parking + sharing));
+
+  // ── Summary lines ──
+  const lines = [
+    ['Acquisition cost (one-off)', acq, acq > 0],
+    ['Mobility Management', mm, checked('mm-on')],
+    ['Carpool', carpool, checked('carpool-on')],
+    ['Shuttle', shuttle, checked('shuttle-on')],
+    ['Pulse', pulse, checked('pulse-on')],
+    ['Incentives', incentives, checked('incentives-on')],
+    ['DeskReservation', desk, checked('desk-on')],
+    ['OfficeParking', parking, checked('parking-on')],
+    ['Exclusive Sharing', sharing, checked('sharing-on')],
+  ].filter(l => l[2] && l[1] > 0);
+
+  let html = lines.map(l => `<div class="sum-line"><span class="lbl">${l[0]}</span><span class="amt">${fmtE(l[1])}</span></div>`).join('');
+  html += `<div class="sum-line" style="margin-top:8px;"><span class="lbl">Direct costs</span><span class="amt">${fmtE(direct)}</span></div>`;
+  html += `<div class="sum-line"><span class="lbl">Overhead (${v('oh')}%)</span><span class="amt">${fmtE(ohAmt)}</span></div>`;
+  html += `<div class="sum-line"><span class="lbl">Cost price</span><span class="amt">${fmtE(cost)}</span></div>`;
+  html += `<div class="sum-line total"><span class="lbl">Gross profit (${Math.round(mg*100)}%)</span><span class="amt">${fmtE(marginAmt)}</span></div>`;
+  setEl('summary-lines', html);
+
+  setEl('sum-price', fmtE(price));
+  setEl('sum-duration', `over ${Math.round(yrs)} year${yrs>1?'s':''}`);
+  setEl('sum-per-year', fmtE(pricePerYear));
+  setEl('sum-per-emp', fmtD(pricePerEmpYear));
+  setEl('sum-cost', fmtE(cost));
+  setEl('sum-profit', fmtE(marginAmt));
+  setEl('header-total', fmtE(price));
+
+  // ── Disabled card styling ──
+  ['carpool','shuttle','pulse','incentives','desk','parking','sharing'].forEach(name => {
+    const card = document.getElementById('pc-'+name);
+    if(card) card.classList.toggle('disabled', !checked(name+'-on'));
+  });
+  document.getElementById('mm-body')?.classList.toggle('disabled', !checked('mm-on'));
+}
+
+// ─── PDF GENERATION ───────────────────────────────────────
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, M = 18, CW = W - M * 2;
+  let y = 0;
+
+  const pageBreak = (needed = 20) => {
+    if (y + needed > 272) { doc.addPage(); y = 20; }
+  };
+
+  // Colors
+  const C = { dark: [26,25,22], mid: [107,104,96], light: [224,222,218], bg: [242,241,237], white: [255,255,255] };
+
+  // Header bar
+  doc.setFillColor(...C.dark);
+  doc.rect(0, 0, W, 32, 'F');
+  doc.setTextColor(...C.white);
+  doc.setFontSize(16);
+  doc.setFont('helvetica','normal');
+  doc.text('Ottimo Mobility', M, 13);
+  doc.setFontSize(9);
+  doc.setTextColor(180,178,172);
+  doc.text('Pricing Calculation Sheet · Internal Use Only', M, 20);
+  const today = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'long',year:'numeric'});
+  doc.text(today, W - M, 20, {align:'right'});
+  y = 42;
+
+  // Client block
+  doc.setFillColor(...C.bg);
+  doc.roundedRect(M, y, CW, 36, 2, 2, 'F');
+  doc.setFontSize(7);
+  doc.setTextColor(...C.mid);
+  doc.setFont('courier','normal');
+  doc.text('CLIENT INFORMATION', M+6, y+8);
+
+  const ci = [
+    ['Client', s('client-name') || '—'],
+    ['Sector', s('client-sector') || '—'],
+    ['Contact', s('client-contact') || '—'],
+    ['Employees', Math.round(v('emp')).toLocaleString('de-DE')],
+    ['Contract', `${Math.round(v('yrs'))} year${v('yrs')>1?'s':''}`],
+    ['Overhead', `${v('oh')}%`],
+    ['Margin', `${v('mg')}%`],
+  ];
+  const colW = CW / 4;
+  ci.forEach((item, i) => {
+    const col = i % 4, row = Math.floor(i / 4);
+    const x = M + 6 + col * colW, iy = y + 16 + row * 12;
+    doc.setFontSize(7); doc.setTextColor(...C.mid); doc.setFont('courier','normal');
+    doc.text(item[0].toUpperCase(), x, iy);
+    doc.setFontSize(9); doc.setTextColor(...C.dark); doc.setFont('helvetica','normal');
+    doc.text(String(item[1]), x, iy + 5);
+  });
+  y += 46;
+
+  // Section helper
+  const sectionHeader = (title) => {
+    pageBreak(12);
+    doc.setFillColor(...C.dark);
+    doc.rect(M, y, CW, 7, 'F');
+    doc.setFontSize(7.5); doc.setTextColor(...C.white); doc.setFont('courier','bold');
+    doc.text(title.toUpperCase(), M+4, y+4.8);
+    y += 11;
+  };
+
+  const costRow = (label, amount, sub, indent=false) => {
+    pageBreak(8);
+    doc.setFontSize(8.5);
+    doc.setTextColor(...(indent ? C.mid : C.dark));
+    doc.setFont('helvetica','normal');
+    doc.text((indent ? '  ' : '') + label, M + 4, y);
+    doc.setFont('courier','normal');
+    doc.text(amount, W - M - 4, y, {align:'right'});
+    if (sub) {
+      doc.setFontSize(7); doc.setTextColor(...C.mid);
+      doc.text('  ' + sub, M+4, y+4);
+      y += 4;
+    }
+    doc.setDrawColor(...C.light);
+    doc.line(M, y+2, W-M, y+2);
+    y += 8;
+  };
+
+  const emp = v('emp') || 1;
+  const yrs = v('yrs') || 1;
+  const oh = v('oh') / 100;
+  const mg = v('mg') / 100;
+
+  // ── Acquisition cost ──
+  const pdf_acq_val = v('acq');
+  if (pdf_acq_val > 0) {
+    sectionHeader('Acquisition Cost');
+    costRow('Acquisition cost', fmtE(pdf_acq_val), 'one-off · independent of products selected');
+  }
+
+  // ── Mobility Management ──
+  if (checked('mm-on')) {
+    sectionHeader('Mobility Management');
+    const c1 = v('mm-h1') * v('mm-r1');
+    const c2 = v('mm-h2') * v('mm-r2');
+    const dataTotal = emp * v('mm-dpu');
+    const total = c1 + c2 + dataTotal;
+    costRow('AM product meetings', fmtE(c1), `${v('mm-h1')}h × €${v('mm-r1')}/h`, true);
+    costRow('PSCL writing', fmtE(c2), `${v('mm-h2')}h × €${v('mm-r2')}/h`, true);
+    costRow('Data purchase', fmtE(dataTotal), `${Math.round(emp).toLocaleString('de-DE')} employees × €${v('mm-dpu')}/employee`, true);
+    doc.setFont('helvetica','bold'); doc.setTextColor(...C.dark);
+    costRow('Subtotal', fmtE(total));
+  }
+
+  // ── Mobility Services ──
+  const products = [
+    {id:'carpool', label:'Carpool'},
+    {id:'shuttle', label:'Shuttle'},
+    {id:'pulse', label:'Pulse'},
+    {id:'incentives', label:'Incentives'},
+    {id:'desk', label:'DeskReservation'},
+    {id:'parking', label:'OfficeParking'},
+    {id:'sharing', label:'Exclusive Sharing'},
+  ].filter(p => checked(p.id+'-on'));
+
+  if (products.length > 0) {
+    sectionHeader('Mobility Services');
+    products.forEach(p => {
+      const name = p.id;
+      const eligible = v(name+'-eligible') || emp;
+      const activeUsers = Math.round(eligible * v(name+'-userpct') / 100);
+      const ticketsMonth = Math.round(activeUsers * v(name+'-ticketpct') / 100);
+      const supportYr = ticketsMonth * 12 * v(name+'-ticketcost');
+      const dataYr = activeUsers * v(name+'-datacost');
+      const amYr = v(name+'-amhours') * v(name+'-amrate');
+      let subtotal = (supportYr + dataYr + amYr) * yrs;
+
+      pageBreak(14);
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...C.dark);
+      doc.text(p.label, M+4, y); y += 6;
+      doc.setFont('helvetica','normal');
+      costRow('Customer support', fmtE(supportYr * yrs), `${ticketsMonth} tickets/month · ${activeUsers} active users · €${v(name+'-ticketcost')}/ticket`, true);
+      costRow('Data costs', fmtE(dataYr * yrs), `${activeUsers} active users × €${v(name+'-datacost')}/yr`, true);
+      costRow('Account management', fmtE(amYr * yrs), `${v(name+'-amhours')}h/yr × €${v(name+'-amrate')}/h`, true);
+
+      if (name === 'incentives') {
+        const pmYr = v('incentives-pmhours') * v('incentives-pmrate');
+        const comYr = v('incentives-comhours') * v('incentives-comrate');
+        const voucYr = v('incentives-vouchours') * v('incentives-voucrate');
+        costRow('Project management', fmtE(pmYr * yrs), `${v('incentives-pmhours')}h/yr × €${v('incentives-pmrate')}/h`, true);
+        costRow('Communication', fmtE(comYr * yrs), `${v('incentives-comhours')}h/yr × €${v('incentives-comrate')}/h`, true);
+        costRow('Voucher management', fmtE(voucYr * yrs), `${v('incentives-vouchours')}h/yr × €${v('incentives-voucrate')}/h`, true);
+        subtotal += (pmYr + comYr + voucYr) * yrs;
+      }
+      if (name === 'sharing') {
+        const cars = v('sharing-cars'), bikes = v('sharing-bikes');
+        const hwCost = cars * v('sharing-carcost') + bikes * v('sharing-bikecost');
+        const vehicles = cars + bikes;
+        const swYr = vehicles * v('sharing-swcost') * 12;
+        const extraYr = v('sharing-extra');
+        const extraDesc = s('sharing-extra-desc');
+        if (hwCost > 0) costRow('Hardware installation', fmtE(hwCost), `${Math.round(cars)} cars × €${v('sharing-carcost')} + ${Math.round(bikes)} bikes × €${v('sharing-bikecost')} (one-off)`, true);
+        if (vehicles > 0) costRow('Software licence (NL)', fmtE(swYr * yrs), `${Math.round(vehicles)} vehicles × €${v('sharing-swcost')}/month`, true);
+        if (extraYr > 0) costRow(extraDesc || 'Additional services', fmtE(extraYr * yrs), '', true);
+        subtotal += hwCost + (swYr + extraYr) * yrs;
+      }
+
+      doc.setFont('helvetica','bold'); doc.setTextColor(...C.dark);
+      costRow(`${p.label} subtotal`, fmtE(subtotal));
+    });
+  }
+
+  // ── Financial Summary ──
+  pageBreak(70);
+  sectionHeader('Financial Summary');
+
+  const allProducts = [
+    {id:'carpool'},{id:'shuttle'},{id:'pulse'},{id:'incentives'},{id:'desk'},{id:'parking'},{id:'sharing'}
+  ];
+  let mm_total = 0;
+  const pdf_acq = v('acq');
+  if (checked('mm-on')) {
+    mm_total = v('mm-h1')*v('mm-r1') + v('mm-h2')*v('mm-r2') + emp*v('mm-dpu');
+  }
+  let ms_total = 0;
+  allProducts.forEach(p => {
+    if (!checked(p.id+'-on')) return;
+    const name = p.id;
+    const eligible = v(name+'-eligible') || emp;
+    const activeUsers = eligible * v(name+'-userpct') / 100;
+    const supportYr = activeUsers * v(name+'-ticketpct') / 100 * 12 * v(name+'-ticketcost');
+    const dataYr = activeUsers * v(name+'-datacost');
+    const amYr = v(name+'-amhours') * v(name+'-amrate');
+    let baseYr = supportYr + dataYr + amYr;
+    if (name === 'incentives') baseYr += v('incentives-pmhours')*v('incentives-pmrate') + v('incentives-comhours')*v('incentives-comrate') + v('incentives-vouchours')*v('incentives-voucrate');
+    let sub = baseYr * yrs;
+    if (name === 'sharing') {
+      const hw = v('sharing-cars')*v('sharing-carcost') + v('sharing-bikes')*v('sharing-bikecost');
+      const sw = (v('sharing-cars')+v('sharing-bikes')) * v('sharing-swcost') * 12;
+      sub += hw + (sw + v('sharing-extra')) * yrs;
+    }
+    ms_total += sub;
+  });
+
+  const direct = pdf_acq + mm_total + ms_total;
+  const ohAmt = direct * oh;
+  const cost = direct + ohAmt;
+  const marginAmt = mg < 1 ? cost * (mg / (1 - mg)) : 0;
+  const price = cost + marginAmt;
+
+  doc.setFillColor(...C.bg);
+  doc.roundedRect(M, y, CW, 52, 2, 2, 'F');
+  const rows = [
+    ['Acquisition cost (one-off)', fmtE(pdf_acq)],
+    ['Mobility Management', fmtE(mm_total)],
+    ['Mobility Services', fmtE(ms_total)],
+    ['Direct costs total', fmtE(direct)],
+    [`Overhead (${v('oh')}%)`, fmtE(ohAmt)],
+    ['Cost price', fmtE(cost)],
+    [`Gross profit (${v('mg')}%)`, fmtE(marginAmt)],
+  ];
+  rows.forEach((row, i) => {
+    const iy = y + 8 + i * 7.5;
+    const isBold = i >= 4;
+    doc.setFontSize(isBold ? 9 : 8.5);
+    doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+    doc.setTextColor(...C.dark);
+    doc.text(row[0], M+6, iy);
+    doc.setFont('courier', isBold ? 'bold' : 'normal');
+    doc.text(row[1], W-M-6, iy, {align:'right'});
+  });
+  y += 56;
+
+  // Big total
+  doc.setFillColor(...C.dark);
+  doc.roundedRect(M, y, CW, 22, 2, 2, 'F');
+  doc.setTextColor(...C.white); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  doc.text('TOTAL SELLING PRICE', M+6, y+7);
+  doc.text(`${Math.round(yrs)} YEAR CONTRACT · ${Math.round(emp).toLocaleString('de-DE')} EMPLOYEES`, M+6, y+13);
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text(fmtE(price), W-M-6, y+13, {align:'right'});
+  doc.setFontSize(8); doc.setFont('courier','normal'); doc.setTextColor(180,178,172);
+  doc.text(`${fmtE(price/yrs)}/yr · ${fmtD(price/emp/yrs)}/employee/yr`, W-M-6, y+19, {align:'right'});
+  y += 30;
+
+  // Notes
+  const notes = s('am-notes');
+  if (notes) {
+    pageBreak(30);
+    doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.mid);
+    doc.text('NOTES', M, y); y += 5;
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...C.dark);
+    const lines = doc.splitTextToSize(notes, CW);
+    lines.forEach(line => { pageBreak(6); doc.text(line, M, y); y += 5; });
+    y += 4;
+  }
+
+  // Signature block
+  pageBreak(50);
+  y = Math.max(y, 230);
+  doc.setFillColor(...C.bg);
+  doc.roundedRect(M, y, CW, 42, 2, 2, 'F');
+  doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.mid);
+  doc.text('SUBMITTED BY', M+6, y+8);
+  doc.text('APPROVED BY', M + CW/2 + 6, y+8);
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...C.dark);
+  doc.text(s('am-name') || '___________________________', M+6, y+16);
+  doc.text(s('mgr-name') || '___________________________', M + CW/2 + 6, y+16);
+  doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.mid);
+  doc.text('Account Manager', M+6, y+22);
+  doc.text('Approving Manager', M + CW/2 + 6, y+22);
+  doc.setDrawColor(...C.border2);
+  doc.line(M+6, y+34, M + CW/2 - 10, y+34);
+  doc.line(M + CW/2 + 6, y+34, W - M - 6, y+34);
+  doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.light);
+  doc.text('Signature & date', M+6, y+38);
+  doc.text('Signature & date', M + CW/2 + 6, y+38);
+
+  // Footer
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.mid);
+    doc.text('Ottimo Mobility S.r.l. · Internal Pricing Document · Confidential', M, 291);
+    doc.text(`Page ${i} of ${totalPages}`, W-M, 291, {align:'right'});
+  }
+
+  const clientSlug = (s('client-name') || 'client').replace(/[^a-zA-Z0-9]/g,'_').toLowerCase();
+  doc.save(`ottimo_pricing_${clientSlug}_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+// ─── RESET ─────────────────────────────────────────────────
+function resetAll() {
+  if(!confirm('Reset all fields to defaults?')) return;
+  location.reload();
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+initFields();
+calc();
+</script>
+</body>
+</html>
