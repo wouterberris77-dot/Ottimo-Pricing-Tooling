@@ -465,17 +465,17 @@
       </div>
       <div class="field">
         <label>Overhead (%)</label>
-        <input type="number" id="oh" value="20" min="0" max="100" step="1" oninput="calc()">
+        <input type="number" id="oh" value="10" min="0" max="100" step="1" oninput="calc()">
       </div>
       <div class="field">
         <label>Profit margin (%)</label>
-        <input type="number" id="mg" value="30" min="0" max="90" step="1" oninput="calc()">
+        <input type="number" id="mg" value="15" min="0" max="90" step="1" oninput="calc()">
       </div>
     </div>
     <div class="grid-2">
       <div class="field">
         <label>Acquisition cost (€ one-off)</label>
-        <input type="number" id="acq" value="800" min="0" step="50" oninput="calc()">
+        <input type="number" id="acq" value="0" min="0" step="50" oninput="calc()">
       </div>
       <div class="field" style="align-self:end;">
         <div class="computed" style="padding:7px 0;font-size:12px;color:var(--text3);font-family:'Courier New',monospace;">One-off cost, independent of products selected</div>
@@ -689,29 +689,73 @@
   <div class="summary-panel">
     <h2>Cost Summary</h2>
     <div id="summary-lines"></div>
-    <div class="sum-big">
-      <div class="big-label">Total selling price</div>
-      <div class="big-val" id="sum-price">€ 0</div>
-      <div class="big-sub" id="sum-duration">over 3 years</div>
+
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.15);">
+      <div style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Calculated selling price</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+          <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Per year</div>
+          <div style="font-size:18px;margin-top:2px;font-family:'Courier New',monospace;" id="sum-per-year">€ 0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+          <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Total <span id="sum-dur-label">3 yrs</span></div>
+          <div style="font-size:18px;margin-top:2px;font-family:'Courier New',monospace;" id="sum-price">€ 0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+          <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Cost price/yr</div>
+          <div style="font-size:14px;margin-top:2px;font-family:'Courier New',monospace;" id="sum-cost-yr">€ 0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+          <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Per employee/yr</div>
+          <div style="font-size:14px;margin-top:2px;font-family:'Courier New',monospace;" id="sum-per-emp">€ 0,00</div>
+        </div>
+      </div>
     </div>
-    <div class="metric-row">
-      <div class="metric-mini">
-        <div class="ml">Per year</div>
-        <div class="mv" id="sum-per-year">€ 0</div>
-      </div>
-      <div class="metric-mini">
-        <div class="ml">Per employee/yr</div>
-        <div class="mv" id="sum-per-emp">€ 0.00</div>
-      </div>
-      <div class="metric-mini">
-        <div class="ml">Cost price</div>
-        <div class="mv" id="sum-cost">€ 0</div>
-      </div>
-      <div class="metric-mini">
-        <div class="ml">Gross profit</div>
-        <div class="mv" id="sum-profit">€ 0</div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:16px;margin-top:4px;">
+      <div style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Override selling price</div>
+      <div style="font-size:11px;color:#9e9c97;margin-bottom:8px;font-family:'Courier New',monospace;">Enter your actual offer price (total contract)</div>
+      <input type="number" id="manual-price" placeholder="Leave blank to use calculated" min="0" step="100"
+        style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#f7f6f2;font-family:'Courier New',monospace;font-size:14px;margin-bottom:10px;"
+        oninput="calcOverride()">
+      <div id="override-result" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Actual margin %</div>
+            <div style="font-size:18px;margin-top:2px;" id="override-margin-pct">0%</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Margin/yr</div>
+            <div style="font-size:18px;margin-top:2px;font-family:'Courier New',monospace;" id="override-margin-yr">€ 0</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Offer price/yr</div>
+            <div style="font-size:18px;margin-top:2px;font-family:'Courier New',monospace;" id="override-per-yr">€ 0</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">p.p./yr</div>
+            <div style="font-size:14px;margin-top:2px;font-family:'Courier New',monospace;" id="override-per-emp">€ 0,00</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:16px;margin-top:16px;">
+      <div style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Price per product</div>
+      <div style="font-size:11px;color:#9e9c97;margin-bottom:8px;font-family:'Courier New',monospace;">Set individual selling prices (optional)</div>
+      <div id="product-price-inputs"></div>
+      <div id="product-price-total" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);">
+        <div style="display:flex;justify-content:space-between;font-size:13px;">
+          <span style="color:#9e9c97;">Sum of product prices</span>
+          <span style="font-family:'Courier New',monospace;" id="product-price-sum">€ 0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px;">
+          <span style="color:#9e9c97;">vs. calculated price</span>
+          <span style="font-family:'Courier New',monospace;font-size:11px;" id="product-price-diff"></span>
+        </div>
+      </div>
+    </div>
+
     <button class="btn btn-pdf" onclick="generatePDF()">↓ Download PDF</button>
   </div>
 </div>
@@ -1011,12 +1055,19 @@ function calc() {
   setEl('summary-lines', html);
 
   setEl('sum-price', fmtE(price));
-  setEl('sum-duration', `over ${Math.round(yrs)} year${yrs>1?'s':''}`);
+  setEl('sum-dur-label', `${Math.round(yrs)} yr${yrs>1?'s':''}`);
   setEl('sum-per-year', fmtE(pricePerYear));
+  setEl('sum-cost-yr', fmtE(cost / yrs));
   setEl('sum-per-emp', fmtD(pricePerEmpYear));
-  setEl('sum-cost', fmtE(cost));
-  setEl('sum-profit', fmtE(marginAmt));
   setEl('header-total', fmtE(price));
+
+  // Store cost for override calc
+  window._calcCost = cost;
+  window._calcYrs = yrs;
+  window._calcEmp = emp;
+  window._calcPrice = price;
+  calcOverride();
+  renderProductPriceInputs();
 
   // ── Disabled card styling ──
   ['carpool','shuttle','pulse','incentives','desk','parking','sharing'].forEach(name => {
@@ -1026,50 +1077,141 @@ function calc() {
   document.getElementById('mm-body')?.classList.toggle('disabled', !checked('mm-on'));
 }
 
+// ─── OVERRIDE PRICE ──────────────────────────────────────
+function calcOverride() {
+  const manual = parseFloat(document.getElementById('manual-price')?.value);
+  const cost = window._calcCost || 0;
+  const yrs = window._calcYrs || 1;
+  const emp = window._calcEmp || 1;
+  const calcPrice = window._calcPrice || 0;
+  const resultDiv = document.getElementById('override-result');
+  if (!resultDiv) return;
+  if (!manual || isNaN(manual) || manual <= 0) {
+    resultDiv.style.display = 'none';
+    return;
+  }
+  resultDiv.style.display = 'block';
+  const profit = manual - cost;
+  const marginPct = cost > 0 ? (profit / manual * 100) : 0;
+  const profitYr = profit / yrs;
+  const priceYr = manual / yrs;
+  const priceEmp = manual / emp / yrs;
+  const color = marginPct >= 0 ? '#6ee7b7' : '#fca5a5';
+  setEl('override-margin-pct', `<span style="color:${color}">${marginPct.toFixed(1)}%</span>`);
+  setEl('override-margin-yr', `<span style="color:${color}">${fmtE(profitYr)}</span>`);
+  setEl('override-per-yr', fmtE(priceYr));
+  setEl('override-per-emp', fmtD(priceEmp));
+}
+
+// ─── PRODUCT PRICE INPUTS ─────────────────────────────
+function renderProductPriceInputs() {
+  const container = document.getElementById('product-price-inputs');
+  if (!container) return;
+  const activeProducts = [
+    {id:'mm', label:'Mobility Management', on: document.getElementById('mm-on')?.checked},
+    {id:'carpool', label:'Carpool', on: document.getElementById('carpool-on')?.checked},
+    {id:'shuttle', label:'Shuttle', on: document.getElementById('shuttle-on')?.checked},
+    {id:'pulse', label:'Pulse', on: document.getElementById('pulse-on')?.checked},
+    {id:'incentives', label:'Incentives', on: document.getElementById('incentives-on')?.checked},
+    {id:'desk', label:'DeskReservation', on: document.getElementById('desk-on')?.checked},
+    {id:'parking', label:'OfficeParking', on: document.getElementById('parking-on')?.checked},
+    {id:'sharing', label:'Exclusive Sharing', on: document.getElementById('sharing-on')?.checked},
+  ].filter(p => p.on);
+
+  // Preserve existing values
+  const existing = {};
+  container.querySelectorAll('input[data-ppid]').forEach(el => {
+    existing[el.dataset.ppid] = el.value;
+  });
+
+  container.innerHTML = activeProducts.map(p => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.label}</span>
+      <input type="number" data-ppid="${p.id}" placeholder="—" min="0" step="100" value="${existing[p.id]||''}"
+        style="width:90px;padding:4px 7px;border-radius:5px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#f7f6f2;font-family:'Courier New',monospace;font-size:12px;text-align:right;"
+        oninput="calcProductPrices()">
+    </div>
+  `).join('');
+  calcProductPrices();
+}
+
+function calcProductPrices() {
+  const inputs = document.querySelectorAll('#product-price-inputs input[data-ppid]');
+  let sum = 0, anyFilled = false;
+  inputs.forEach(el => {
+    const val = parseFloat(el.value);
+    if (!isNaN(val) && val > 0) { sum += val; anyFilled = true; }
+  });
+  const totalDiv = document.getElementById('product-price-total');
+  if (!totalDiv) return;
+  if (!anyFilled) { totalDiv.style.display = 'none'; return; }
+  totalDiv.style.display = 'block';
+  const calcPrice = window._calcPrice || 0;
+  const diff = sum - calcPrice;
+  const diffStr = diff === 0 ? 'matches calculated' :
+    (diff > 0 ? `<span style="color:#6ee7b7">+${fmtE(diff)} above calc</span>` :
+                `<span style="color:#fca5a5">${fmtE(diff)} below calc</span>`);
+  setEl('product-price-sum', fmtE(sum));
+  setEl('product-price-diff', diffStr);
+}
+
 // ─── PDF GENERATION ───────────────────────────────────────
 function generatePDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const W = 210, M = 18, CW = W - M * 2;
-  let y = 0;
+  const PAGE_H = 297, FOOTER_H = 12, CONTENT_BOTTOM = PAGE_H - FOOTER_H - 8;
+  let y = 0, pageNum = 1;
 
-  const pageBreak = (needed = 20) => {
-    if (y + needed > 272) { doc.addPage(); y = 20; }
-  };
-
-  // Colors
   const C = { dark: [26,25,22], mid: [107,104,96], light: [224,222,218], bg: [242,241,237], white: [255,255,255] };
 
-  // Header bar
+  function addFooter() {
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...C.mid);
+    doc.text('Ottimo Mobility S.r.l. · Internal Pricing Document · Confidential', M, PAGE_H - 6);
+    doc.text(`Page ${pageNum}`, W - M, PAGE_H - 6, {align:'right'});
+  }
+
+  function newPage() {
+    addFooter();
+    doc.addPage();
+    pageNum++;
+    y = 20;
+  }
+
+  function pageBreak(needed) {
+    if (y + needed > CONTENT_BOTTOM) newPage();
+  }
+
+  // Header
   doc.setFillColor(...C.dark);
   doc.rect(0, 0, W, 32, 'F');
   doc.setTextColor(...C.white);
-  doc.setFontSize(16);
-  doc.setFont('helvetica','normal');
+  doc.setFontSize(16); doc.setFont('helvetica','normal');
   doc.text('Ottimo Mobility', M, 13);
-  doc.setFontSize(9);
-  doc.setTextColor(180,178,172);
-  doc.text('Pricing Calculation Sheet · Internal Use Only', M, 20);
+  doc.setFontSize(9); doc.setTextColor(180,178,172);
+  doc.text('Pricing Calculation Sheet \u00b7 Internal Use Only', M, 20);
   const today = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'long',year:'numeric'});
   doc.text(today, W - M, 20, {align:'right'});
   y = 42;
 
   // Client block
+  const emp = v('emp') || 1;
+  const yrs = v('yrs') || 1;
+  const oh = v('oh') / 100;
+  const mg = v('mg') / 100;
+
   doc.setFillColor(...C.bg);
   doc.roundedRect(M, y, CW, 36, 2, 2, 'F');
-  doc.setFontSize(7);
-  doc.setTextColor(...C.mid);
-  doc.setFont('courier','normal');
+  doc.setFontSize(7); doc.setTextColor(...C.mid); doc.setFont('courier','normal');
   doc.text('CLIENT INFORMATION', M+6, y+8);
-
   const ci = [
-    ['Client', s('client-name') || '—'],
-    ['Sector', s('client-sector') || '—'],
-    ['Contact', s('client-contact') || '—'],
-    ['Employees', Math.round(v('emp')).toLocaleString('de-DE')],
-    ['Contract', `${Math.round(v('yrs'))} year${v('yrs')>1?'s':''}`],
+    ['Client', s('client-name') || '\u2014'],
+    ['Sector', s('client-sector') || '\u2014'],
+    ['Contact', s('client-contact') || '\u2014'],
+    ['Employees', Math.round(emp).toLocaleString('de-DE')],
+    ['Contract', `${Math.round(yrs)} year${yrs>1?'s':''}`],
     ['Overhead', `${v('oh')}%`],
-    ['Margin', `${v('mg')}%`],
+    ['Base margin', `${v('mg')}%`],
   ];
   const colW = CW / 4;
   ci.forEach((item, i) => {
@@ -1082,9 +1224,9 @@ function generatePDF() {
   });
   y += 46;
 
-  // Section helper
+  // Section header helper
   const sectionHeader = (title) => {
-    pageBreak(12);
+    pageBreak(14);
     doc.setFillColor(...C.dark);
     doc.rect(M, y, CW, 7, 'F');
     doc.setFontSize(7.5); doc.setTextColor(...C.white); doc.setFont('courier','bold');
@@ -1093,51 +1235,48 @@ function generatePDF() {
   };
 
   const costRow = (label, amount, sub, indent=false) => {
-    pageBreak(8);
+    const needed = sub ? 13 : 9;
+    pageBreak(needed);
     doc.setFontSize(8.5);
     doc.setTextColor(...(indent ? C.mid : C.dark));
     doc.setFont('helvetica','normal');
-    doc.text((indent ? '  ' : '') + label, M + 4, y);
+    doc.text((indent ? '   ' : '') + label, M + 4, y);
     doc.setFont('courier','normal');
     doc.text(amount, W - M - 4, y, {align:'right'});
     if (sub) {
       doc.setFontSize(7); doc.setTextColor(...C.mid);
-      doc.text('  ' + sub, M+4, y+4);
-      y += 4;
+      doc.text('   ' + sub, M+4, y+4.5);
+      y += 4.5;
     }
     doc.setDrawColor(...C.light);
-    doc.line(M, y+2, W-M, y+2);
+    doc.line(M, y+2.5, W-M, y+2.5);
     y += 8;
   };
 
-  const emp = v('emp') || 1;
-  const yrs = v('yrs') || 1;
-  const oh = v('oh') / 100;
-  const mg = v('mg') / 100;
-
-  // ── Acquisition cost ──
-  const pdf_acq_val = v('acq');
-  if (pdf_acq_val > 0) {
+  // Acquisition
+  const pdf_acq = v('acq');
+  if (pdf_acq > 0) {
     sectionHeader('Acquisition Cost');
-    costRow('Acquisition cost', fmtE(pdf_acq_val), 'one-off · independent of products selected');
+    costRow('Acquisition cost', fmtE(pdf_acq), 'one-off \u00b7 independent of products selected');
   }
 
-  // ── Mobility Management ──
+  // Mobility Management
+  let mm_total = 0;
   if (checked('mm-on')) {
     sectionHeader('Mobility Management');
     const c1 = v('mm-h1') * v('mm-r1');
     const c2 = v('mm-h2') * v('mm-r2');
     const dataTotal = emp * v('mm-dpu');
-    const total = c1 + c2 + dataTotal;
-    costRow('AM product meetings', fmtE(c1), `${v('mm-h1')}h × €${v('mm-r1')}/h`, true);
-    costRow('PSCL writing', fmtE(c2), `${v('mm-h2')}h × €${v('mm-r2')}/h`, true);
-    costRow('Data purchase', fmtE(dataTotal), `${Math.round(emp).toLocaleString('de-DE')} employees × €${v('mm-dpu')}/employee`, true);
+    mm_total = c1 + c2 + dataTotal;
+    costRow('AM product meetings', fmtE(c1), `${v('mm-h1')}h \u00d7 \u20ac${v('mm-r1')}/h`, true);
+    costRow('PSCL writing', fmtE(c2), `${v('mm-h2')}h \u00d7 \u20ac${v('mm-r2')}/h`, true);
+    costRow('Data purchase', fmtE(dataTotal), `${Math.round(emp).toLocaleString('de-DE')} employees \u00d7 \u20ac${v('mm-dpu')}/employee`, true);
     doc.setFont('helvetica','bold'); doc.setTextColor(...C.dark);
-    costRow('Subtotal', fmtE(total));
+    costRow('Subtotal (direct)', fmtE(mm_total));
   }
 
-  // ── Mobility Services ──
-  const products = [
+  // Mobility Services
+  const msProducts = [
     {id:'carpool', label:'Carpool'},
     {id:'shuttle', label:'Shuttle'},
     {id:'pulse', label:'Pulse'},
@@ -1147,9 +1286,10 @@ function generatePDF() {
     {id:'sharing', label:'Exclusive Sharing'},
   ].filter(p => checked(p.id+'-on'));
 
-  if (products.length > 0) {
+  let ms_total = 0;
+  if (msProducts.length > 0) {
     sectionHeader('Mobility Services');
-    products.forEach(p => {
+    msProducts.forEach(p => {
       const name = p.id;
       const eligible = v(name+'-eligible') || emp;
       const activeUsers = Math.round(eligible * v(name+'-userpct') / 100);
@@ -1159,21 +1299,21 @@ function generatePDF() {
       const amYr = v(name+'-amhours') * v(name+'-amrate');
       let subtotal = (supportYr + dataYr + amYr) * yrs;
 
-      pageBreak(14);
+      pageBreak(16);
       doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...C.dark);
       doc.text(p.label, M+4, y); y += 6;
       doc.setFont('helvetica','normal');
-      costRow('Customer support', fmtE(supportYr * yrs), `${ticketsMonth} tickets/month · ${activeUsers} active users · €${v(name+'-ticketcost')}/ticket`, true);
-      costRow('Data costs', fmtE(dataYr * yrs), `${activeUsers} active users × €${v(name+'-datacost')}/yr`, true);
-      costRow('Account management', fmtE(amYr * yrs), `${v(name+'-amhours')}h/yr × €${v(name+'-amrate')}/h`, true);
+      costRow('Customer support', fmtE(supportYr * yrs), `${ticketsMonth} tickets/month \u00b7 ${activeUsers} active users \u00b7 \u20ac${v(name+'-ticketcost')}/ticket`, true);
+      costRow('Data costs', fmtE(dataYr * yrs), `${activeUsers} active users \u00d7 \u20ac${v(name+'-datacost')}/yr`, true);
+      costRow('Account management', fmtE(amYr * yrs), `${v(name+'-amhours')}h/yr \u00d7 \u20ac${v(name+'-amrate')}/h`, true);
 
       if (name === 'incentives') {
         const pmYr = v('incentives-pmhours') * v('incentives-pmrate');
         const comYr = v('incentives-comhours') * v('incentives-comrate');
         const voucYr = v('incentives-vouchours') * v('incentives-voucrate');
-        costRow('Project management', fmtE(pmYr * yrs), `${v('incentives-pmhours')}h/yr × €${v('incentives-pmrate')}/h`, true);
-        costRow('Communication', fmtE(comYr * yrs), `${v('incentives-comhours')}h/yr × €${v('incentives-comrate')}/h`, true);
-        costRow('Voucher management', fmtE(voucYr * yrs), `${v('incentives-vouchours')}h/yr × €${v('incentives-voucrate')}/h`, true);
+        costRow('Project management', fmtE(pmYr * yrs), `${v('incentives-pmhours')}h/yr \u00d7 \u20ac${v('incentives-pmrate')}/h`, true);
+        costRow('Communication', fmtE(comYr * yrs), `${v('incentives-comhours')}h/yr \u00d7 \u20ac${v('incentives-comrate')}/h`, true);
+        costRow('Voucher management', fmtE(voucYr * yrs), `${v('incentives-vouchours')}h/yr \u00d7 \u20ac${v('incentives-voucrate')}/h`, true);
         subtotal += (pmYr + comYr + voucYr) * yrs;
       }
       if (name === 'sharing') {
@@ -1182,108 +1322,110 @@ function generatePDF() {
         const vehicles = cars + bikes;
         const swYr = vehicles * v('sharing-swcost') * 12;
         const extraYr = v('sharing-extra');
-        const extraDesc = s('sharing-extra-desc');
-        if (hwCost > 0) costRow('Hardware installation', fmtE(hwCost), `${Math.round(cars)} cars × €${v('sharing-carcost')} + ${Math.round(bikes)} bikes × €${v('sharing-bikecost')} (one-off)`, true);
-        if (vehicles > 0) costRow('Software licence (NL)', fmtE(swYr * yrs), `${Math.round(vehicles)} vehicles × €${v('sharing-swcost')}/month`, true);
-        if (extraYr > 0) costRow(extraDesc || 'Additional services', fmtE(extraYr * yrs), '', true);
+        if (hwCost > 0) costRow('Hardware installation', fmtE(hwCost), `${Math.round(cars)} cars + ${Math.round(bikes)} bikes (one-off)`, true);
+        if (vehicles > 0) costRow('Software licence (NL)', fmtE(swYr * yrs), `${Math.round(vehicles)} vehicles \u00d7 \u20ac${v('sharing-swcost')}/month`, true);
+        if (extraYr > 0) costRow(s('sharing-extra-desc') || 'Additional services', fmtE(extraYr * yrs), '', true);
         subtotal += hwCost + (swYr + extraYr) * yrs;
       }
-
       doc.setFont('helvetica','bold'); doc.setTextColor(...C.dark);
-      costRow(`${p.label} subtotal`, fmtE(subtotal));
+      costRow(`${p.label} subtotal (direct)`, fmtE(subtotal));
+      ms_total += subtotal;
     });
   }
 
-  // ── Financial Summary ──
-  pageBreak(70);
+  // Financial Summary - always on a fresh block with enough space
+  pageBreak(100);
   sectionHeader('Financial Summary');
-
-  const allProducts = [
-    {id:'carpool'},{id:'shuttle'},{id:'pulse'},{id:'incentives'},{id:'desk'},{id:'parking'},{id:'sharing'}
-  ];
-  let mm_total = 0;
-  const pdf_acq = v('acq');
-  if (checked('mm-on')) {
-    mm_total = v('mm-h1')*v('mm-r1') + v('mm-h2')*v('mm-r2') + emp*v('mm-dpu');
-  }
-  let ms_total = 0;
-  allProducts.forEach(p => {
-    if (!checked(p.id+'-on')) return;
-    const name = p.id;
-    const eligible = v(name+'-eligible') || emp;
-    const activeUsers = eligible * v(name+'-userpct') / 100;
-    const supportYr = activeUsers * v(name+'-ticketpct') / 100 * 12 * v(name+'-ticketcost');
-    const dataYr = activeUsers * v(name+'-datacost');
-    const amYr = v(name+'-amhours') * v(name+'-amrate');
-    let baseYr = supportYr + dataYr + amYr;
-    if (name === 'incentives') baseYr += v('incentives-pmhours')*v('incentives-pmrate') + v('incentives-comhours')*v('incentives-comrate') + v('incentives-vouchours')*v('incentives-voucrate');
-    let sub = baseYr * yrs;
-    if (name === 'sharing') {
-      const hw = v('sharing-cars')*v('sharing-carcost') + v('sharing-bikes')*v('sharing-bikecost');
-      const sw = (v('sharing-cars')+v('sharing-bikes')) * v('sharing-swcost') * 12;
-      sub += hw + (sw + v('sharing-extra')) * yrs;
-    }
-    ms_total += sub;
-  });
 
   const direct = pdf_acq + mm_total + ms_total;
   const ohAmt = direct * oh;
   const cost = direct + ohAmt;
   const marginAmt = mg < 1 ? cost * (mg / (1 - mg)) : 0;
-  const price = cost + marginAmt;
+  const calcPrice = cost + marginAmt;
+  const manualPrice = parseFloat(document.getElementById('manual-price')?.value);
+  const finalPrice = (!isNaN(manualPrice) && manualPrice > 0) ? manualPrice : calcPrice;
+  const finalProfit = finalPrice - cost;
+  const finalMarginPct = cost > 0 ? (finalProfit / finalPrice * 100) : 0;
 
+  // Cost breakdown table
   doc.setFillColor(...C.bg);
-  doc.roundedRect(M, y, CW, 52, 2, 2, 'F');
-  const rows = [
-    ['Acquisition cost (one-off)', fmtE(pdf_acq)],
-    ['Mobility Management', fmtE(mm_total)],
-    ['Mobility Services', fmtE(ms_total)],
-    ['Direct costs total', fmtE(direct)],
-    [`Overhead (${v('oh')}%)`, fmtE(ohAmt)],
-    ['Cost price', fmtE(cost)],
-    [`Gross profit (${v('mg')}%)`, fmtE(marginAmt)],
+  const summaryRows = [
+    ['Acquisition cost (one-off)', fmtE(pdf_acq), false],
+    ['Mobility Management (direct)', fmtE(mm_total), false],
+    ['Mobility Services (direct)', fmtE(ms_total), false],
+    ['Total direct costs', fmtE(direct), true],
+    [`Overhead (${v('oh')}%)`, fmtE(ohAmt), false],
+    ['Cost price (total)', fmtE(cost), true],
+    ['Cost price (per year)', fmtE(cost/yrs), false],
   ];
-  rows.forEach((row, i) => {
-    const iy = y + 8 + i * 7.5;
-    const isBold = i >= 4;
-    doc.setFontSize(isBold ? 9 : 8.5);
-    doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+  const tableH = summaryRows.length * 8 + 10;
+  doc.roundedRect(M, y, CW, tableH, 2, 2, 'F');
+  summaryRows.forEach((row, i) => {
+    const iy = y + 8 + i * 8;
+    doc.setFontSize(row[2] ? 9 : 8.5);
+    doc.setFont('helvetica', row[2] ? 'bold' : 'normal');
     doc.setTextColor(...C.dark);
     doc.text(row[0], M+6, iy);
-    doc.setFont('courier', isBold ? 'bold' : 'normal');
+    doc.setFont('courier', row[2] ? 'bold' : 'normal');
     doc.text(row[1], W-M-6, iy, {align:'right'});
+    if (i < summaryRows.length - 1) {
+      doc.setDrawColor(...C.light);
+      doc.line(M+4, iy+3, W-M-4, iy+3);
+    }
   });
-  y += 56;
+  y += tableH + 6;
 
-  // Big total
+  // Product prices if filled
+  const ppInputs = document.querySelectorAll('#product-price-inputs input[data-ppid]');
+  let ppSum = 0, ppRows = [];
+  ppInputs.forEach(el => {
+    const val = parseFloat(el.value);
+    if (!isNaN(val) && val > 0) {
+      ppSum += val;
+      const lbl = el.closest('div')?.querySelector('span')?.textContent || el.dataset.ppid;
+      ppRows.push([lbl, val]);
+    }
+  });
+  if (ppRows.length > 0) {
+    pageBreak(ppRows.length * 8 + 24);
+    sectionHeader('Product Selling Prices');
+    ppRows.forEach(r => costRow(r[0], fmtE(r[1]), '', true));
+    doc.setFont('helvetica','bold');
+    costRow('Sum of product prices', fmtE(ppSum));
+  }
+
+  // Selling price block
+  pageBreak(40);
   doc.setFillColor(...C.dark);
-  doc.roundedRect(M, y, CW, 22, 2, 2, 'F');
+  doc.roundedRect(M, y, CW, 36, 2, 2, 'F');
   doc.setTextColor(...C.white); doc.setFont('helvetica','normal'); doc.setFontSize(8);
-  doc.text('TOTAL SELLING PRICE', M+6, y+7);
-  doc.text(`${Math.round(yrs)} YEAR CONTRACT · ${Math.round(emp).toLocaleString('de-DE')} EMPLOYEES`, M+6, y+13);
-  doc.setFontSize(16); doc.setFont('helvetica','bold');
-  doc.text(fmtE(price), W-M-6, y+13, {align:'right'});
-  doc.setFontSize(8); doc.setFont('courier','normal'); doc.setTextColor(180,178,172);
-  doc.text(`${fmtE(price/yrs)}/yr · ${fmtD(price/emp/yrs)}/employee/yr`, W-M-6, y+19, {align:'right'});
-  y += 30;
+  const priceLabel = (!isNaN(manualPrice) && manualPrice > 0) ? 'SELLING PRICE (MANUAL OVERRIDE)' : 'SELLING PRICE (CALCULATED)';
+  doc.text(priceLabel, M+6, y+8);
+  doc.text(`${Math.round(yrs)} YEAR CONTRACT \u00b7 ${Math.round(emp).toLocaleString('de-DE')} EMPLOYEES`, M+6, y+15);
+  doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text(fmtE(finalPrice), W-M-6, y+16, {align:'right'});
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(180,178,172);
+  doc.text(`${fmtE(finalPrice/yrs)}/yr  \u00b7  ${fmtD(finalPrice/emp/yrs)}/employee/yr`, M+6, y+23);
+  doc.text(`Margin: ${finalMarginPct.toFixed(1)}%  \u00b7  ${fmtE(finalProfit/yrs)}/yr profit`, M+6, y+30);
+  y += 42;
 
   // Notes
   const notes = s('am-notes');
   if (notes) {
-    pageBreak(30);
+    pageBreak(20);
     doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.mid);
     doc.text('NOTES', M, y); y += 5;
     doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...C.dark);
-    const lines = doc.splitTextToSize(notes, CW);
-    lines.forEach(line => { pageBreak(6); doc.text(line, M, y); y += 5; });
+    const noteLines = doc.splitTextToSize(notes, CW);
+    noteLines.forEach(line => { pageBreak(6); doc.text(line, M, y); y += 5; });
     y += 4;
   }
 
-  // Signature block
-  pageBreak(50);
-  y = Math.max(y, 230);
+  // Signature block — ensure it fits on current page or goes to next
+  if (y + 50 > CONTENT_BOTTOM) newPage();
+  y = Math.max(y + 8, y);
   doc.setFillColor(...C.bg);
-  doc.roundedRect(M, y, CW, 42, 2, 2, 'F');
+  doc.roundedRect(M, y, CW, 44, 2, 2, 'F');
   doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.mid);
   doc.text('SUBMITTED BY', M+6, y+8);
   doc.text('APPROVED BY', M + CW/2 + 6, y+8);
@@ -1294,20 +1436,13 @@ function generatePDF() {
   doc.text('Account Manager', M+6, y+22);
   doc.text('Approving Manager', M + CW/2 + 6, y+22);
   doc.setDrawColor(...C.border2);
-  doc.line(M+6, y+34, M + CW/2 - 10, y+34);
-  doc.line(M + CW/2 + 6, y+34, W - M - 6, y+34);
+  doc.line(M+6, y+36, M + CW/2 - 10, y+36);
+  doc.line(M + CW/2 + 6, y+36, W - M - 6, y+36);
   doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.light);
-  doc.text('Signature & date', M+6, y+38);
-  doc.text('Signature & date', M + CW/2 + 6, y+38);
+  doc.text('Signature & date', M+6, y+40);
+  doc.text('Signature & date', M + CW/2 + 6, y+40);
 
-  // Footer
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFontSize(7); doc.setFont('courier','normal'); doc.setTextColor(...C.mid);
-    doc.text('Ottimo Mobility S.r.l. · Internal Pricing Document · Confidential', M, 291);
-    doc.text(`Page ${i} of ${totalPages}`, W-M, 291, {align:'right'});
-  }
+  addFooter();
 
   const clientSlug = (s('client-name') || 'client').replace(/[^a-zA-Z0-9]/g,'_').toLowerCase();
   doc.save(`ottimo_pricing_${clientSlug}_${new Date().toISOString().slice(0,10)}.pdf`);
