@@ -714,8 +714,8 @@
 
     <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:16px;margin-top:4px;">
       <div style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Override selling price</div>
-      <div style="font-size:11px;color:#9e9c97;margin-bottom:8px;font-family:'Courier New',monospace;">Enter your actual offer price (total contract)</div>
-      <input type="number" id="manual-price" placeholder="Leave blank to use calculated" min="0" step="100"
+      <div style="font-size:11px;color:#9e9c97;margin-bottom:8px;font-family:'Courier New',monospace;">Enter total contract price, or fill product prices below</div>
+      <input type="number" id="manual-price" placeholder="Auto-fills from product prices below" min="0" step="100"
         style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#f7f6f2;font-family:'Courier New',monospace;font-size:14px;margin-bottom:10px;"
         oninput="calcOverride()">
       <div id="override-result" style="display:none;">
@@ -742,7 +742,7 @@
 
     <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:16px;margin-top:16px;">
       <div style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Price per product</div>
-      <div style="font-size:11px;color:#9e9c97;margin-bottom:8px;font-family:'Courier New',monospace;">Set individual selling prices (optional)</div>
+      <div style="font-size:11px;color:#9e9c97;margin-bottom:8px;font-family:'Courier New',monospace;">Set price per product per year → auto-totals above</div>
       <div id="product-price-inputs"></div>
       <div id="product-price-total" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);">
         <div style="display:flex;justify-content:space-between;font-size:13px;">
@@ -1125,11 +1125,12 @@ function renderProductPriceInputs() {
   });
 
   container.innerHTML = activeProducts.map(p => `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
       <span style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.label}</span>
       <input type="number" data-ppid="${p.id}" placeholder="—" min="0" step="100" value="${existing[p.id]||''}"
-        style="width:90px;padding:4px 7px;border-radius:5px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#f7f6f2;font-family:'Courier New',monospace;font-size:12px;text-align:right;"
+        style="width:80px;padding:4px 7px;border-radius:5px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#f7f6f2;font-family:'Courier New',monospace;font-size:12px;text-align:right;"
         oninput="calcProductPrices()">
+      <span style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;white-space:nowrap;">/yr</span>
     </div>
   `).join('');
   calcProductPrices();
@@ -1137,21 +1138,42 @@ function renderProductPriceInputs() {
 
 function calcProductPrices() {
   const inputs = document.querySelectorAll('#product-price-inputs input[data-ppid]');
-  let sum = 0, anyFilled = false;
+  let sumYr = 0, anyFilled = false;
   inputs.forEach(el => {
     const val = parseFloat(el.value);
-    if (!isNaN(val) && val > 0) { sum += val; anyFilled = true; }
+    if (!isNaN(val) && val > 0) { sumYr += val; anyFilled = true; }
   });
   const totalDiv = document.getElementById('product-price-total');
   if (!totalDiv) return;
-  if (!anyFilled) { totalDiv.style.display = 'none'; return; }
-  totalDiv.style.display = 'block';
+  if (!anyFilled) {
+    totalDiv.style.display = 'none';
+    // clear override if product prices are removed
+    const manualEl = document.getElementById('manual-price');
+    if (manualEl && manualEl.dataset.fromProducts === 'true') {
+      manualEl.value = '';
+      manualEl.dataset.fromProducts = '';
+      calcOverride();
+    }
+    return;
+  }
+  const yrs = window._calcYrs || 1;
   const calcPrice = window._calcPrice || 0;
-  const diff = sum - calcPrice;
+  const sumTotal = sumYr * yrs;
+  totalDiv.style.display = 'block';
+
+  // Auto-fill override field with sum
+  const manualEl = document.getElementById('manual-price');
+  if (manualEl) {
+    manualEl.value = Math.round(sumTotal);
+    manualEl.dataset.fromProducts = 'true';
+    calcOverride();
+  }
+
+  const diff = sumTotal - calcPrice;
   const diffStr = diff === 0 ? 'matches calculated' :
     (diff > 0 ? `<span style="color:#6ee7b7">+${fmtE(diff)} above calc</span>` :
                 `<span style="color:#fca5a5">${fmtE(diff)} below calc</span>`);
-  setEl('product-price-sum', fmtE(sum));
+  setEl('product-price-sum', `${fmtE(sumYr)}/yr = ${fmtE(sumTotal)} total`);
   setEl('product-price-diff', diffStr);
 }
 
