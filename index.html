@@ -1353,6 +1353,27 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       </div>
     </div>
 
+    <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:16px;margin-top:16px;">
+      <div style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Time commitment / year</div>
+      <div id="time-summary-lines"></div>
+      <div id="time-summary-total" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">AM hours/yr</div>
+            <div style="font-size:20px;margin-top:2px;font-family:'Courier New',monospace;" id="time-am-total">0</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Support hrs/yr</div>
+            <div style="font-size:20px;margin-top:2px;font-family:'Courier New',monospace;" id="time-support-total">0</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;grid-column:span 2;">
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Total hours/yr (all roles)</div>
+            <div style="font-size:20px;margin-top:2px;font-family:'Courier New',monospace;" id="time-grand-total">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button class="btn btn-pdf" onclick="try{generatePDF()}catch(e){alert('PDF error: '+e.message+'\n'+e.stack)}">↓ Download PDF</button>
   </div>
 </div>
@@ -1387,7 +1408,7 @@ function toggleProduct(name) {
 
 // ─── STANDARD PRODUCT FIELDS ──────────────────────────────
 function renderStandardFields(name, defaults) {
-  const d = Object.assign({ userPct: 3, ticketPct: 8, ticketCost: 5, dataCost: 0.01, amHours: 4, amRate: 30 }, defaults);
+  const d = Object.assign({ userPct: 3, ticketPct: 8, ticketCost: 5, ticketMins: 15, dataCost: 0.01, amHours: 4, amRate: 30 }, defaults);
   return `
     <div class="section-divider">Customer Support</div>
     <div class="grid-4" style="margin-bottom:10px;">
@@ -1407,6 +1428,10 @@ function renderStandardFields(name, defaults) {
       <div class="field">
         <label>Cost per ticket (€)</label>
         <input type="number" id="${name}-ticketcost" value="${d.ticketCost}" min="0" step="0.5" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Minutes per ticket</label>
+        <input type="number" id="${name}-ticketmins" value="${d.ticketMins}" min="1" step="5" oninput="calc()">
       </div>
     </div>
     <div class="field" style="margin-bottom:12px;">
@@ -1693,6 +1718,7 @@ function calc() {
   window._calcPrice = price;
   calcOverride();
   renderProductPriceInputs();
+  calcTimeSummary();
 
   // ── Disabled card styling ──
   ['carpool','shuttle','pulse','incentives','desk','parking','sharing','advice'].forEach(name => {
@@ -1803,6 +1829,95 @@ function calcProductPrices() {
                 `<span style="color:#fca5a5">${fmtE(diff)} below calc</span>`);
   setEl('product-price-sum', `${fmtE(sumYr)}/yr = ${fmtE(sumTotal)} total`);
   setEl('product-price-diff', diffStr);
+}
+
+// ─── TIME SUMMARY ────────────────────────────────────────
+function calcTimeSummary() {
+  const emp = v('emp') || 1;
+  const lines = [];
+  let totalAM = 0, totalSupport = 0;
+
+  // Mobility Management
+  if (checked('mm-on')) {
+    const amH = v('mm-h1') + v('mm-h2'); // product meetings + PSCL writing
+    totalAM += amH;
+    lines.push({ lbl: 'Mobility Management', am: amH, sup: 0 });
+  }
+
+  // MMA
+  if (checked('mma-on')) {
+    const visits = v('mma-visits');
+    const amH = visits * v('mma-visit-hours') * v('mma-visit-persons')
+              + v('mma-online-persons') * v('mma-online-meetings') * v('mma-online-hours')
+              + v('mma-extra-hours');
+    totalAM += amH;
+    lines.push({ lbl: "Mobility Management D'Area", am: amH, sup: 0 });
+  }
+
+  // Standard Mobility Services products
+  const stdProds = [
+    {id:'carpool', lbl:'Carpool'}, {id:'shuttle', lbl:'Shuttle'},
+    {id:'pulse', lbl:'Pulse'}, {id:'incentives', lbl:'Incentives'},
+    {id:'desk', lbl:'DeskReservation'}, {id:'parking', lbl:'OfficeParking'},
+    {id:'sharing', lbl:'Exclusive Sharing'}, {id:'advice', lbl:'Advice'}
+  ];
+
+  stdProds.forEach(p => {
+    if (!checked(p.id+'-on')) return;
+    const eligible = v(p.id+'-eligible') || emp;
+    const activeUsers = eligible * v(p.id+'-userpct') / 100;
+    const ticketsPerMonth = activeUsers * v(p.id+'-ticketpct') / 100;
+    const supportHrsYr = ticketsPerMonth * 12 * (v(p.id+'-ticketmins') || 15) / 60;
+    const amH = v(p.id+'-amhours');
+    totalAM += amH;
+    totalSupport += supportHrsYr;
+    lines.push({ lbl: p.lbl, am: amH, sup: supportHrsYr });
+
+    // Incentives extra
+    if (p.id === 'incentives') {
+      const extra = v('incentives-pmhours') + v('incentives-comhours') + v('incentives-vouchours');
+      totalAM += extra;
+      lines[lines.length-1].am += extra;
+    }
+    // Sharing visits
+    if (p.id === 'sharing') {
+      // no extra time tracked here beyond AM
+    }
+  });
+
+  const container = document.getElementById('time-summary-lines');
+  const totalDiv  = document.getElementById('time-summary-total');
+  if (!container) return;
+
+  if (lines.length === 0) {
+    container.innerHTML = '<div style="font-size:11px;color:#6b6860;font-family:'Courier New',monospace;padding:4px 0;">Enable products to see time breakdown</div>';
+    if (totalDiv) totalDiv.style.display = 'none';
+    return;
+  }
+
+  container.innerHTML = lines.map(l => {
+    const total = l.am + l.sup;
+    const amColor = l.am > 40 ? '#fca5a5' : l.am > 20 ? '#fcd34d' : '#6ee7b7';
+    const supColor = l.sup > 40 ? '#fca5a5' : l.sup > 20 ? '#fcd34d' : '#9e9c97';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:11px;">
+      <span style="color:#9e9c97;font-family:'Courier New',monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.lbl}</span>
+      <span style="display:flex;gap:8px;flex-shrink:0;margin-left:8px;">
+        <span title="AM hours/yr" style="color:${amColor};font-family:'Courier New',monospace;">${Math.round(l.am)}h AM</span>
+        ${l.sup > 0 ? `<span title="Support hours/yr" style="color:${supColor};font-family:'Courier New',monospace;">${Math.round(l.sup)}h sup</span>` : ''}
+      </span>
+    </div>`;
+  }).join('');
+
+  if (totalDiv) {
+    totalDiv.style.display = 'block';
+    const grand = totalAM + totalSupport;
+    const amColor  = totalAM > 100 ? '#fca5a5' : totalAM > 50 ? '#fcd34d' : '#6ee7b7';
+    const supColor = totalSupport > 100 ? '#fca5a5' : totalSupport > 50 ? '#fcd34d' : '#6ee7b7';
+    const grandColor = grand > 200 ? '#fca5a5' : grand > 100 ? '#fcd34d' : '#6ee7b7';
+    document.getElementById('time-am-total').innerHTML = `<span style="color:${amColor}">${Math.round(totalAM)}</span>`;
+    document.getElementById('time-support-total').innerHTML = `<span style="color:${supColor}">${Math.round(totalSupport)}</span>`;
+    document.getElementById('time-grand-total').innerHTML = `<span style="color:${grandColor}">${Math.round(grand)}</span>`;
+  }
 }
 
 // ─── PDF GENERATION ───────────────────────────────────────
