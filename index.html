@@ -789,7 +789,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   .product-card.disabled .product-card-header { opacity: 0.5; }
   .product-card.disabled .product-body { opacity: 0.35; pointer-events: none; }
   .product-card.disabled .product-card-header .switch { opacity: 1 !important; pointer-events: all !important; }
-  .collapse-content.disabled { opacity: 0.45; pointer-events: none; }
+  .card.disabled .card-header { opacity: 0.5; }
+  .card.disabled .collapse-content { opacity: 0.35; pointer-events: none; }
+  .card.disabled .product-toggle { opacity: 1 !important; pointer-events: all !important; }
   .product-card-header {
     display: flex;
     align-items: center;
@@ -916,13 +918,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       </div>
       <div class="field">
         <label>Number of employees</label>
-        <input type="number" id="emp" value="2500" min="1" step="100" oninput="calc()">
+        <input type="number" id="emp" value="500" min="1" step="100" oninput="calc()">
       </div>
     </div>
     <div class="grid-3" style="margin-bottom:12px;">
       <div class="field">
         <label>Contract duration (years)</label>
-        <input type="number" id="yrs" value="3" min="1" max="10" step="1" oninput="calc()">
+        <input type="number" id="yrs" value="1" min="1" max="10" step="1" oninput="calc()">
       </div>
       <div class="field">
         <label>Overhead (%)</label>
@@ -946,7 +948,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 </div>
 
 <!-- MOBILITY MANAGEMENT -->
-<div class="card">
+<div class="card disabled" id="mm-card">
   <div class="card-header" onclick="toggleCollapse('mm-body')">
     <div class="card-title">
       <h2>Mobility Management</h2>
@@ -957,7 +959,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       <button class="toggle-btn" id="mm-toggle">−</button>
     </div>
   </div>
-  <div class="collapse-content open disabled" id="mm-body">
+  <div class="collapse-content open" id="mm-body">
     <div class="product-toggle">
       <label class="switch"><input type="checkbox" id="mm-on" onchange="calc()"><span class="slider"></span></label>
       <label>Include this product</label>
@@ -967,7 +969,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="grid-4" style="margin-bottom:12px;">
       <div class="field">
         <label>AM product hours</label>
-        <input type="number" id="mm-h1" value="10" min="0" oninput="calc()">
+        <input type="number" id="mm-h1" value="4" min="0" oninput="calc()">
       </div>
       <div class="field">
         <label>AM hourly rate (€)</label>
@@ -975,7 +977,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       </div>
       <div class="field">
         <label>PSCL writing hours</label>
-        <input type="number" id="mm-h2" value="10" min="0" oninput="calc()">
+        <input type="number" id="mm-h2" value="4" min="0" oninput="calc()">
       </div>
       <div class="field">
         <label>PSCL hourly rate (€)</label>
@@ -1267,7 +1269,7 @@ function toggleProduct(name) {
 
 // ─── STANDARD PRODUCT FIELDS ──────────────────────────────
 function renderStandardFields(name, defaults) {
-  const d = Object.assign({ userPct: 3, ticketPct: 8, ticketCost: 5, dataCost: 0.01, amHours: 10, amRate: 30 }, defaults);
+  const d = Object.assign({ userPct: 3, ticketPct: 8, ticketCost: 5, dataCost: 0.01, amHours: 4, amRate: 30 }, defaults);
   return `
     <div class="section-divider">Customer Support</div>
     <div class="grid-4" style="margin-bottom:10px;">
@@ -1556,7 +1558,7 @@ function calc() {
     const card = document.getElementById('pc-'+name);
     if(card) card.classList.toggle('disabled', !checked(name+'-on'));
   });
-  document.getElementById('mm-body')?.classList.toggle('disabled', !checked('mm-on'));
+  document.getElementById('mm-card')?.classList.toggle('disabled', !checked('mm-on'));
 }
 
 // ─── OVERRIDE PRICE ──────────────────────────────────────
