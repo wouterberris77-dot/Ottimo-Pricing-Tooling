@@ -997,6 +997,124 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   </div>
 </div>
 
+
+<!-- MOBILITY MANAGEMENT D'AREA -->
+<div class="card disabled" id="mma-card">
+  <div class="card-header" onclick="toggleCollapse('mma-body')">
+    <div class="card-title">
+      <h2>Mobility Management D'Area</h2>
+      <span class="badge">Municipality</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="mma-cost-header">—</span><span id="mma-cost-header-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;"></span></span>
+      <button class="toggle-btn" id="mma-toggle">−</button>
+    </div>
+  </div>
+  <div class="collapse-content open" id="mma-body">
+    <div class="product-toggle">
+      <label class="switch"><input type="checkbox" id="mma-on" onchange="calc()"><span class="slider"></span></label>
+      <label>Include this product</label>
+    </div>
+
+    <div class="section-divider">Employers in scope</div>
+    <div class="grid-2" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Number of employers (incl. existing)</label>
+        <input type="number" id="mma-employers" value="10" min="1" step="1" oninput="calc()">
+        <div class="info-note">Mobility Management cost is charged for (n−1) additional employers</div>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <div class="computed" id="mma-employers-computed">= 9 × Mobility Management cost</div>
+      </div>
+    </div>
+
+    <div class="section-divider">Municipality visits</div>
+    <div class="grid-4" style="margin-bottom:6px;">
+      <div class="field">
+        <label>Visits per year</label>
+        <input type="number" id="mma-visits" value="4" min="0" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Hours per visit</label>
+        <input type="number" id="mma-visit-hours" value="8" min="0" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Ottimo staff (persons)</label>
+        <input type="number" id="mma-visit-persons" value="2" min="1" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Hourly rate (€)</label>
+        <input type="number" id="mma-visit-rate" value="30" min="0" step="5" oninput="calc()">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <div class="computed" id="mma-visit-computed">= € 0 / year</div>
+    </div>
+
+    <div class="section-divider">Travel costs (per visit)</div>
+    <div class="grid-4" style="margin-bottom:6px;">
+      <div class="field">
+        <label>One-way distance (km)</label>
+        <input type="number" id="mma-km" value="0" min="0" step="10" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Rate per km (€)</label>
+        <input type="number" id="mma-km-rate" value="0.46" min="0" step="0.01" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Hotel rooms per visit</label>
+        <input type="number" id="mma-rooms" value="0" min="0" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Room rate (€/night)</label>
+        <input type="number" id="mma-room-rate" value="100" min="0" step="10" oninput="calc()">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <div class="computed" id="mma-travel-computed">= € 0 / year</div>
+    </div>
+
+    <div class="section-divider">Online meetings</div>
+    <div class="grid-4" style="margin-bottom:6px;">
+      <div class="field">
+        <label>Ottimo persons</label>
+        <input type="number" id="mma-online-persons" value="2" min="1" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Meetings per year</label>
+        <input type="number" id="mma-online-meetings" value="2" min="0" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Hours per meeting</label>
+        <input type="number" id="mma-online-hours" value="2" min="0" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Hourly rate (€)</label>
+        <input type="number" id="mma-online-rate" value="30" min="0" step="5" oninput="calc()">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:12px;">
+      <div class="computed" id="mma-online-computed">= € 0 / year</div>
+    </div>
+
+    <div class="section-divider">Additional work (analysis, plans, etc.)</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Hours per year</label>
+        <input type="number" id="mma-extra-hours" value="10" min="0" step="1" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Hourly rate (€)</label>
+        <input type="number" id="mma-extra-rate" value="30" min="0" step="5" oninput="calc()">
+      </div>
+    </div>
+    <div class="field" style="margin-top:6px;">
+      <div class="computed" id="mma-extra-computed">= € 0 / year</div>
+    </div>
+  </div>
+</div>
+
 <!-- MOBILITY SERVICES -->
 <div class="card">
   <div class="card-header" onclick="toggleCollapse('ms-body')">
@@ -1491,9 +1609,30 @@ function calc() {
     sharing = base * yrs + hwCost + (swPerYear + extraPerYear) * yrs;
   }
 
+  // ── Mobility Management D'Area ──
+  let mma = 0;
+  if (checked('mma-on')) {
+    const mmCost = v('mm-h1')*v('mm-r1') + v('mm-h2')*v('mm-r2') + emp*v('mm-dpu');
+    const extraEmployers = Math.max(0, Math.round(v('mma-employers')) - 1);
+    const employerCost = extraEmployers * mmCost;
+
+    const visitYr = v('mma-visits') * v('mma-visit-hours') * v('mma-visit-persons') * v('mma-visit-rate');
+    const travelYr = v('mma-visits') * (v('mma-km') * 2 * v('mma-km-rate') * v('mma-visit-persons') + v('mma-rooms') * v('mma-room-rate'));
+    const onlineYr = v('mma-online-persons') * v('mma-online-meetings') * v('mma-online-hours') * v('mma-online-rate');
+    const extraYr  = v('mma-extra-hours') * v('mma-extra-rate');
+
+    setEl('mma-employers-computed', `= ${extraEmployers} × Mobility Management cost = ${fmtE(employerCost)}`);
+    setEl('mma-visit-computed',     `= ${fmtE(visitYr)} / year (${Math.round(v('mma-visits'))} visits × ${Math.round(v('mma-visit-hours'))}h × ${Math.round(v('mma-visit-persons'))} persons × €${v('mma-visit-rate')}/h)`);
+    setEl('mma-travel-computed',    `= ${fmtE(travelYr)} / year (travel + accommodation per visit × ${Math.round(v('mma-visits'))} visits)`);
+    setEl('mma-online-computed',    `= ${fmtE(onlineYr)} / year (${Math.round(v('mma-online-persons'))} persons × ${Math.round(v('mma-online-meetings'))} meetings × ${Math.round(v('mma-online-hours'))}h × €${v('mma-online-rate')}/h)`);
+    setEl('mma-extra-computed',     `= ${fmtE(extraYr)} / year (${Math.round(v('mma-extra-hours'))}h × €${v('mma-extra-rate')}/h)`);
+
+    mma = employerCost + (visitYr + travelYr + onlineYr + extraYr) * yrs;
+  }
+
   // ── Totals ──
   const acq = v('acq');
-  const direct = acq + mm + carpool + shuttle + pulse + incentives + desk + parking + sharing + advice;
+  const direct = acq + mm + mma + carpool + shuttle + pulse + incentives + desk + parking + sharing + advice;
   const ohAmt = direct * oh;
   const cost = direct + ohAmt;
   const marginAmt = mg < 1 ? cost * (mg / (1 - mg)) : 0;
@@ -1503,10 +1642,11 @@ function calc() {
 
   // ── Update product cost badges ──
   const durLabel = `${Math.round(yrs)} yr${yrs>1?'s':''}`;
-  const allBadges = ['mm-cost-header','carpool-cost','shuttle-cost','pulse-cost','incentives-cost','desk-cost','parking-cost','sharing-cost','advice-cost','ms-cost-header'];
+  const allBadges = ['mm-cost-header','mma-cost-header','carpool-cost','shuttle-cost','pulse-cost','incentives-cost','desk-cost','parking-cost','sharing-cost','advice-cost','ms-cost-header'];
   allBadges.forEach(id => setEl(id+'-dur', durLabel));
 
   setEl('mm-cost-header', checked('mm-on') ? fmtE(mm) : '—');
+  setEl('mma-cost-header', checked('mma-on') ? fmtE(mma) : '—');
   setEl('carpool-cost', checked('carpool-on') ? fmtE(carpool) : '—');
   setEl('shuttle-cost', checked('shuttle-on') ? fmtE(shuttle) : '—');
   setEl('pulse-cost', checked('pulse-on') ? fmtE(pulse) : '—');
@@ -1521,6 +1661,7 @@ function calc() {
   const lines = [
     ['Acquisition cost (one-off)', acq, acq > 0],
     ['Mobility Management', mm, checked('mm-on')],
+    ["Mobility Management D'Area", mma, checked('mma-on')],
     ['Carpool', carpool, checked('carpool-on')],
     ['Shuttle', shuttle, checked('shuttle-on')],
     ['Pulse', pulse, checked('pulse-on')],
@@ -1559,6 +1700,7 @@ function calc() {
     if(card) card.classList.toggle('disabled', !checked(name+'-on'));
   });
   document.getElementById('mm-card')?.classList.toggle('disabled', !checked('mm-on'));
+  document.getElementById('mma-card')?.classList.toggle('disabled', !checked('mma-on'));
 }
 
 // ─── OVERRIDE PRICE ──────────────────────────────────────
@@ -1593,6 +1735,7 @@ function renderProductPriceInputs() {
   if (!container) return;
   const activeProducts = [
     {id:'mm', label:'Mobility Management', on: document.getElementById('mm-on')?.checked},
+    {id:'mma', label:"Mobility Management D'Area", on: document.getElementById('mma-on')?.checked},
     {id:'carpool', label:'Carpool', on: document.getElementById('carpool-on')?.checked},
     {id:'shuttle', label:'Shuttle', on: document.getElementById('shuttle-on')?.checked},
     {id:'pulse', label:'Pulse', on: document.getElementById('pulse-on')?.checked},
@@ -1765,6 +1908,27 @@ function generatePDF() {
       row('Subtotal (direct costs)', fmtE(mm_total), null, false);
     }
 
+    // ── Mobility Management D'Area ──
+    let mma_total = 0;
+    if (checked('mma-on')) {
+      hdr("Mobility Management D'Area");
+      const mmCostPDF = v('mm-h1')*v('mm-r1') + v('mm-h2')*v('mm-r2') + emp*v('mm-dpu');
+      const extraEmp = Math.max(0, Math.round(v('mma-employers')) - 1);
+      const empCost = extraEmp * mmCostPDF;
+      const visitYr = v('mma-visits') * v('mma-visit-hours') * v('mma-visit-persons') * v('mma-visit-rate');
+      const travelYr = v('mma-visits') * (v('mma-km')*2*v('mma-km-rate')*v('mma-visit-persons') + v('mma-rooms')*v('mma-room-rate'));
+      const onlineYr = v('mma-online-persons')*v('mma-online-meetings')*v('mma-online-hours')*v('mma-online-rate');
+      const extraYr  = v('mma-extra-hours')*v('mma-extra-rate');
+      mma_total = empCost + (visitYr + travelYr + onlineYr + extraYr) * yrs;
+
+      row('Employer MM cost ('+extraEmp+' additional)', fmtE(empCost), extraEmp+' employers × MM cost', true);
+      row('Municipality visits', fmtE(visitYr*yrs), Math.round(v('mma-visits'))+' visits/yr × '+Math.round(v('mma-visit-hours'))+'h × '+Math.round(v('mma-visit-persons'))+' persons × €'+v('mma-visit-rate')+'/h', true);
+      if (travelYr > 0) row('Travel & accommodation', fmtE(travelYr*yrs), 'per visit: '+v('mma-km')+'km × 2 × €'+v('mma-km-rate')+' + '+Math.round(v('mma-rooms'))+' rooms × €'+v('mma-room-rate'), true);
+      row('Online meetings', fmtE(onlineYr*yrs), Math.round(v('mma-online-persons'))+' persons × '+Math.round(v('mma-online-meetings'))+' meetings × '+Math.round(v('mma-online-hours'))+'h × €'+v('mma-online-rate')+'/h', true);
+      row('Additional work', fmtE(extraYr*yrs), Math.round(v('mma-extra-hours'))+'h/yr × €'+v('mma-extra-rate')+'/h', true);
+      row("Subtotal D'Area", fmtE(mma_total), null, false);
+    }
+
     const msProds = [
       {id:'carpool',lbl:'Carpool'},{id:'shuttle',lbl:'Shuttle'},{id:'pulse',lbl:'Pulse'},
       {id:'incentives',lbl:'Incentives'},{id:'desk',lbl:'DeskReservation'},
@@ -1821,7 +1985,7 @@ function generatePDF() {
     pb(90);
     hdr('Financial Summary');
 
-    const direct = acqVal + mm_total + ms_total;
+    const direct = acqVal + mm_total + mma_total + ms_total;
     const ohAmt  = direct * oh;
     const cost   = direct + ohAmt;
     const calcMarginAmt = mg < 1 ? cost*(mg/(1-mg)) : 0;
@@ -1838,6 +2002,7 @@ function generatePDF() {
     const sumRows = [
       ['Acquisition cost (one-off)', fmtE(acqVal), false],
       ['Mobility Management (direct)', fmtE(mm_total), false],
+      ["Mobility Management D'Area", fmtE(mma_total), false],
       ['Mobility Services (direct)', fmtE(ms_total), false],
       ['Total direct costs', fmtE(direct), true],
       ['Overhead ('+v('oh')+'%)', fmtE(ohAmt), false],
