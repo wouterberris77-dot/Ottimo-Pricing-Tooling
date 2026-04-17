@@ -1357,11 +1357,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       <div id="time-summary-total" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
-            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">AM hours/yr</div>
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Account mgmt hrs/yr</div>
             <div style="font-size:20px;margin-top:2px;font-family:'Courier New',monospace;" id="time-am-total">0</div>
           </div>
           <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;">
-            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Support hrs/yr</div>
+            <div style="font-size:10px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;">Customer support hrs/yr</div>
             <div style="font-size:20px;margin-top:2px;font-family:'Courier New',monospace;" id="time-support-total">0</div>
           </div>
           <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:10px 12px;grid-column:span 2;">
@@ -1833,32 +1833,35 @@ function calcProductPrices() {
 function calcTimeSummary() {
   const emp = v('emp') || 1;
   const lines = [];
-  let totalAM = 0, totalSupport = 0;
+  // Each line: { lbl, am: accountmanagement hrs/yr, sup: customer support hrs/yr }
+  // AM        = accountmanagement uren (inkl. bezoeken MMA)
+  // sup       = customer support uren = ticket handling + PSCL writing + Incentives project uren
+  let totalAM = 0, totalSup = 0;
 
   // Mobility Management
   if (checked('mm-on')) {
-    const mmAM   = v('mm-h1');           // product meeting hours
-    const mmPSCL = v('mm-h2');           // PSCL writing hours
-    const amH = mmAM + mmPSCL;
-    totalAM += amH;
-    lines.push({ lbl: 'Mobility Management', am: mmAM, pscl: mmPSCL, sup: 0 });
+    const am   = v('mm-h1');   // AM product meeting hours
+    const pscl = v('mm-h2');   // PSCL writing → goes to customer support
+    totalAM  += am;
+    totalSup += pscl;
+    lines.push({ lbl: 'Mobility Management', am, sup: pscl, supDetail: pscl + 'h PSCL' });
   }
 
   // MMA
   if (checked('mma-on')) {
-    const extraEmployers = Math.max(0, Math.round(v('mma-employers')) - 1);
-    const mmPSCL_mma = v('mm-h2') * (extraEmployers + 1); // PSCL for all employers
-    const mmAM_mma   = v('mm-h1') * (extraEmployers + 1); // AM meetings for all employers
-    const visits = v('mma-visits');
-    const visitH = visits * v('mma-visit-hours') * v('mma-visit-persons')
+    const n = Math.max(1, Math.round(v('mma-employers')));
+    const am_meetings  = v('mm-h1') * n;  // AM product meetings for all employers
+    const pscl_all     = v('mm-h2') * n;  // PSCL writing for all employers → customer support
+    const visitH = v('mma-visits') * v('mma-visit-hours') * v('mma-visit-persons')
                  + v('mma-online-persons') * v('mma-online-meetings') * v('mma-online-hours')
                  + v('mma-extra-hours');
-    const amH = mmAM_mma + mmPSCL_mma + visitH;
-    totalAM += amH;
-    lines.push({ lbl: "Mobility Management D'Area", am: mmAM_mma, pscl: mmPSCL_mma, visitH: visitH, sup: 0 });
+    const am = am_meetings + visitH;
+    totalAM  += am;
+    totalSup += pscl_all;
+    lines.push({ lbl: "Mobility Management D'Area", am, sup: pscl_all, supDetail: Math.round(pscl_all) + 'h PSCL (' + n + ' employers)' });
   }
 
-  // Standard Mobility Services products
+  // Mobility Services products
   const stdProds = [
     {id:'carpool', lbl:'Carpool'}, {id:'shuttle', lbl:'Shuttle'},
     {id:'pulse', lbl:'Pulse'}, {id:'incentives', lbl:'Incentives'},
@@ -1867,26 +1870,27 @@ function calcTimeSummary() {
   ];
 
   stdProds.forEach(p => {
-    if (!checked(p.id+'-on')) return;
-    const eligible = v(p.id+'-eligible') || emp;
-    const activeUsers = eligible * v(p.id+'-userpct') / 100;
-    const ticketsPerMonth = activeUsers * v(p.id+'-ticketpct') / 100;
-    const supportHrsYr = ticketsPerMonth * 12 * (v(p.id+'-ticketmins') || 15) / 60;
-    const amH = v(p.id+'-amhours');
-    totalAM += amH;
-    totalSupport += supportHrsYr;
-    lines.push({ lbl: p.lbl, am: amH, sup: supportHrsYr });
+    if (!checked(p.id + '-on')) return;
+    const eligible      = v(p.id + '-eligible') || emp;
+    const activeUsers   = eligible * v(p.id + '-userpct') / 100;
+    const ticketsPerMth = activeUsers * v(p.id + '-ticketpct') / 100;
+    const ticketHrsYr   = ticketsPerMth * 12 * (v(p.id + '-ticketmins') || 15) / 60;
 
-    // Incentives extra
+    const am = v(p.id + '-amhours');   // accountmanagement
+    let supH = ticketHrsYr;            // ticket handling
+    let supDetails = [];
+    if (ticketHrsYr > 0) supDetails.push(Math.round(ticketHrsYr) + 'h tickets');
+
+    // Incentives: PM + communicatie + voucher uren → customer support
     if (p.id === 'incentives') {
-      const extra = v('incentives-pmhours') + v('incentives-comhours') + v('incentives-vouchours');
-      totalAM += extra;
-      lines[lines.length-1].am += extra;
+      const projH = v('incentives-pmhours') + v('incentives-comhours') + v('incentives-vouchours');
+      supH += projH;
+      if (projH > 0) supDetails.push(Math.round(projH) + 'h project');
     }
-    // Sharing visits
-    if (p.id === 'sharing') {
-      // no extra time tracked here beyond AM
-    }
+
+    totalAM  += am;
+    totalSup += supH;
+    lines.push({ lbl: p.lbl, am, sup: supH, supDetail: supDetails.join(' + ') });
   });
 
   const container = document.getElementById('time-summary-lines');
@@ -1899,30 +1903,26 @@ function calcTimeSummary() {
     return;
   }
 
-  container.innerHTML = lines.map(l => {
-    const amColor   = l.am   > 40 ? '#fca5a5' : l.am   > 20 ? '#fcd34d' : '#6ee7b7';
-    const psclColor = (l.pscl||0) > 40 ? '#fca5a5' : (l.pscl||0) > 20 ? '#fcd34d' : '#a5b4fc';
-    const supColor  = l.sup  > 40 ? '#fca5a5' : l.sup  > 20 ? '#fcd34d' : '#9e9c97';
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:11px;">
-      <span style="color:#9e9c97;font-family:'Courier New',monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.lbl}</span>
-      <span style="display:flex;gap:6px;flex-shrink:0;margin-left:6px;">
-        ${l.am > 0 ? `<span title="AM hours/yr" style="color:${amColor};font-family:'Courier New',monospace;">${Math.round(l.am)}h AM</span>` : ''}
-        ${(l.pscl||0) > 0 ? `<span title="PSCL writing hours/yr" style="color:${psclColor};font-family:'Courier New',monospace;">${Math.round(l.pscl)}h PSCL</span>` : ''}
-        ${(l.visitH||0) > 0 ? `<span title="Visit/meeting hours/yr" style="color:#6ee7b7;font-family:'Courier New',monospace;">${Math.round(l.visitH)}h visits</span>` : ''}
-        ${l.sup > 0 ? `<span title="Support hours/yr" style="color:${supColor};font-family:'Courier New',monospace;">${Math.round(l.sup)}h sup</span>` : ''}
-      </span>
-    </div>`;
-  }).join('');
+  const c = (hrs, warn1, warn2) => hrs > warn2 ? '#fca5a5' : hrs > warn1 ? '#fcd34d' : '#6ee7b7';
+
+  container.innerHTML = lines.map(l => `
+    <div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:11px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#9e9c97;font-family:'Courier New',monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.lbl}</span>
+        <span style="display:flex;gap:8px;flex-shrink:0;margin-left:6px;">
+          ${l.am  > 0 ? `<span style="color:${c(l.am,20,40)};font-family:'Courier New',monospace;" title="Account management hrs/yr">${Math.round(l.am)}h AM</span>` : ''}
+          ${l.sup > 0 ? `<span style="color:${c(l.sup,20,40)};font-family:'Courier New',monospace;" title="Customer support hrs/yr">${Math.round(l.sup)}h sup</span>` : ''}
+        </span>
+      </div>
+      ${l.supDetail ? `<div style="font-size:10px;color:#6b6860;font-family:'Courier New',monospace;margin-top:1px;text-align:right;">${l.supDetail}</div>` : ''}
+    </div>`).join('');
 
   if (totalDiv) {
     totalDiv.style.display = 'block';
-    const grand = totalAM + totalSupport;
-    const amColor  = totalAM > 100 ? '#fca5a5' : totalAM > 50 ? '#fcd34d' : '#6ee7b7';
-    const supColor = totalSupport > 100 ? '#fca5a5' : totalSupport > 50 ? '#fcd34d' : '#6ee7b7';
-    const grandColor = grand > 200 ? '#fca5a5' : grand > 100 ? '#fcd34d' : '#6ee7b7';
-    document.getElementById('time-am-total').innerHTML = `<span style="color:${amColor}">${Math.round(totalAM)}</span>`;
-    document.getElementById('time-support-total').innerHTML = `<span style="color:${supColor}">${Math.round(totalSupport)}</span>`;
-    document.getElementById('time-grand-total').innerHTML = `<span style="color:${grandColor}">${Math.round(grand)}</span>`;
+    const grand = totalAM + totalSup;
+    document.getElementById('time-am-total').innerHTML   = `<span style="color:${c(totalAM,50,100)}">${Math.round(totalAM)}</span>`;
+    document.getElementById('time-support-total').innerHTML = `<span style="color:${c(totalSup,50,100)}">${Math.round(totalSup)}</span>`;
+    document.getElementById('time-grand-total').innerHTML   = `<span style="color:${c(grand,100,200)}">${Math.round(grand)}</span>`;
   }
 }
 
