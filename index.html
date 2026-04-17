@@ -956,7 +956,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   </div>
   <div class="collapse-content open" id="mm-body">
     <div class="product-toggle">
-      <label class="switch"><input type="checkbox" id="mm-on" checked onchange="calc()"><span class="slider"></span></label>
+      <label class="switch"><input type="checkbox" id="mm-on" onchange="calc()"><span class="slider"></span></label>
       <label>Include this product</label>
     </div>
 
@@ -1010,7 +1010,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="product-card" id="pc-carpool">
       <div class="product-card-header" onclick="toggleProduct('carpool')">
         <label class="switch" onclick="event.stopPropagation()">
-          <input type="checkbox" id="carpool-on" checked onchange="calc()">
+          <input type="checkbox" id="carpool-on" onchange="calc()">
           <span class="slider"></span>
         </label>
         <h3>Carpool</h3>
@@ -1026,7 +1026,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="product-card" id="pc-shuttle">
       <div class="product-card-header" onclick="toggleProduct('shuttle')">
         <label class="switch" onclick="event.stopPropagation()">
-          <input type="checkbox" id="shuttle-on" checked onchange="calc()">
+          <input type="checkbox" id="shuttle-on" onchange="calc()">
           <span class="slider"></span>
         </label>
         <h3>Shuttle</h3>
@@ -1042,7 +1042,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="product-card" id="pc-pulse">
       <div class="product-card-header" onclick="toggleProduct('pulse')">
         <label class="switch" onclick="event.stopPropagation()">
-          <input type="checkbox" id="pulse-on" checked onchange="calc()">
+          <input type="checkbox" id="pulse-on" onchange="calc()">
           <span class="slider"></span>
         </label>
         <h3>Pulse</h3>
@@ -1058,7 +1058,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="product-card" id="pc-incentives">
       <div class="product-card-header" onclick="toggleProduct('incentives')">
         <label class="switch" onclick="event.stopPropagation()">
-          <input type="checkbox" id="incentives-on" checked onchange="calc()">
+          <input type="checkbox" id="incentives-on" onchange="calc()">
           <span class="slider"></span>
         </label>
         <h3>Incentives</h3>
@@ -1074,7 +1074,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="product-card" id="pc-desk">
       <div class="product-card-header" onclick="toggleProduct('desk')">
         <label class="switch" onclick="event.stopPropagation()">
-          <input type="checkbox" id="desk-on" checked onchange="calc()">
+          <input type="checkbox" id="desk-on" onchange="calc()">
           <span class="slider"></span>
         </label>
         <h3>DeskReservation</h3>
@@ -1090,7 +1090,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="product-card" id="pc-parking">
       <div class="product-card-header" onclick="toggleProduct('parking')">
         <label class="switch" onclick="event.stopPropagation()">
-          <input type="checkbox" id="parking-on" checked onchange="calc()">
+          <input type="checkbox" id="parking-on" onchange="calc()">
           <span class="slider"></span>
         </label>
         <h3>OfficeParking</h3>
@@ -1106,7 +1106,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div class="product-card" id="pc-sharing">
       <div class="product-card-header" onclick="toggleProduct('sharing')">
         <label class="switch" onclick="event.stopPropagation()">
-          <input type="checkbox" id="sharing-on" checked onchange="calc()">
+          <input type="checkbox" id="sharing-on" onchange="calc()">
           <span class="slider"></span>
         </label>
         <h3>Exclusive Sharing</h3>
@@ -1115,6 +1115,22 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       </div>
       <div class="product-body" id="sharing-body">
         <div id="sharing-fields"></div>
+      </div>
+    </div>
+
+  <!-- ADVICE -->
+    <div class="product-card" id="pc-advice">
+      <div class="product-card-header" onclick="toggleProduct('advice')">
+        <label class="switch" onclick="event.stopPropagation()">
+          <input type="checkbox" id="advice-on" onchange="calc()">
+          <span class="slider"></span>
+        </label>
+        <h3>Advice</h3>
+        <span style="display:flex;align-items:center;gap:5px;"><span class="product-cost" id="advice-cost">€ 0</span><span id="advice-cost-dur" style="font-size:10px;color:var(--text3);font-family:'Courier New',monospace;">3 yrs</span></span>
+        <span style="font-size:18px;color:var(--text3);margin-left:4px;" id="advice-arrow">›</span>
+      </div>
+      <div class="product-body" id="advice-body">
+        <div id="advice-fields"></div>
       </div>
     </div>
 
@@ -1741,7 +1757,7 @@ function generatePDF() {
     const msProds = [
       {id:'carpool',lbl:'Carpool'},{id:'shuttle',lbl:'Shuttle'},{id:'pulse',lbl:'Pulse'},
       {id:'incentives',lbl:'Incentives'},{id:'desk',lbl:'DeskReservation'},
-      {id:'parking',lbl:'OfficeParking'},{id:'sharing',lbl:'Exclusive Sharing'}
+      {id:'parking',lbl:'OfficeParking'},{id:'sharing',lbl:'Exclusive Sharing'},{id:'advice',lbl:'Advice'}
     ].filter(function(p){ return checked(p.id+'-on'); });
 
     let ms_total = 0;
