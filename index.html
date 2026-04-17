@@ -786,7 +786,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     margin-bottom: 12px;
     overflow: hidden;
   }
-  .product-card.disabled { opacity: 0.45; }
+  .product-card.disabled .product-card-header { opacity: 0.5; }
+  .product-card.disabled .product-body { opacity: 0.35; pointer-events: none; }
+  .product-card.disabled .product-card-header .switch { opacity: 1 !important; pointer-events: all !important; }
+  .collapse-content.disabled { opacity: 0.45; pointer-events: none; }
   .product-card-header {
     display: flex;
     align-items: center;
@@ -954,7 +957,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       <button class="toggle-btn" id="mm-toggle">−</button>
     </div>
   </div>
-  <div class="collapse-content open" id="mm-body">
+  <div class="collapse-content open disabled" id="mm-body">
     <div class="product-toggle">
       <label class="switch"><input type="checkbox" id="mm-on" onchange="calc()"><span class="slider"></span></label>
       <label>Include this product</label>
@@ -1007,7 +1010,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   <div class="collapse-content open" id="ms-body">
 
     <!-- CARPOOL -->
-    <div class="product-card" id="pc-carpool">
+    <div class="product-card disabled" id="pc-carpool">
       <div class="product-card-header" onclick="toggleProduct('carpool')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="carpool-on" onchange="calc()">
@@ -1023,7 +1026,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- SHUTTLE -->
-    <div class="product-card" id="pc-shuttle">
+    <div class="product-card disabled" id="pc-shuttle">
       <div class="product-card-header" onclick="toggleProduct('shuttle')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="shuttle-on" onchange="calc()">
@@ -1039,7 +1042,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- PULSE -->
-    <div class="product-card" id="pc-pulse">
+    <div class="product-card disabled" id="pc-pulse">
       <div class="product-card-header" onclick="toggleProduct('pulse')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="pulse-on" onchange="calc()">
@@ -1055,7 +1058,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- INCENTIVES -->
-    <div class="product-card" id="pc-incentives">
+    <div class="product-card disabled" id="pc-incentives">
       <div class="product-card-header" onclick="toggleProduct('incentives')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="incentives-on" onchange="calc()">
@@ -1071,7 +1074,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- DESKRESERVATION -->
-    <div class="product-card" id="pc-desk">
+    <div class="product-card disabled" id="pc-desk">
       <div class="product-card-header" onclick="toggleProduct('desk')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="desk-on" onchange="calc()">
@@ -1087,7 +1090,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- OFFICEPARKING -->
-    <div class="product-card" id="pc-parking">
+    <div class="product-card disabled" id="pc-parking">
       <div class="product-card-header" onclick="toggleProduct('parking')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="parking-on" onchange="calc()">
@@ -1103,7 +1106,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- EXCLUSIVE SHARING -->
-    <div class="product-card" id="pc-sharing">
+    <div class="product-card disabled" id="pc-sharing">
       <div class="product-card-header" onclick="toggleProduct('sharing')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="sharing-on" onchange="calc()">
@@ -1119,7 +1122,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
   <!-- ADVICE -->
-    <div class="product-card" id="pc-advice">
+    <div class="product-card disabled" id="pc-advice">
       <div class="product-card-header" onclick="toggleProduct('advice')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="advice-on" onchange="calc()">
@@ -1217,7 +1220,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:16px;margin-top:16px;">
       <div style="font-size:11px;color:#9e9c97;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Price per product</div>
       <div style="font-size:11px;color:#9e9c97;margin-bottom:8px;font-family:'Courier New',monospace;">Set price per product per year → auto-totals above</div>
-      <div id="product-price-inputs"></div>
+      <div id="product-price-inputs"><div style="font-size:11px;color:#6b6860;font-family:'Courier New',monospace;padding:4px 0;">Enable products above to set per-product prices</div></div>
       <div id="product-price-total" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);">
         <div style="display:flex;justify-content:space-between;font-size:13px;">
           <span style="color:#9e9c97;">Sum of product prices</span>
@@ -1450,12 +1453,13 @@ function calc() {
   }
 
   // ── Standard products ──
-  let carpool = 0, shuttle = 0, pulse = 0, desk = 0, parking = 0;
+  let carpool = 0, shuttle = 0, pulse = 0, desk = 0, parking = 0, advice = 0;
   if (checked('carpool-on')) carpool = calcStandard('carpool', emp) * yrs;
   if (checked('shuttle-on')) shuttle = calcStandard('shuttle', emp) * yrs;
   if (checked('pulse-on')) pulse = calcStandard('pulse', emp) * yrs;
   if (checked('desk-on')) desk = calcStandard('desk', emp) * yrs;
   if (checked('parking-on')) parking = calcStandard('parking', emp) * yrs;
+  if (checked('advice-on')) advice = calcStandard('advice', emp) * yrs;
 
   // ── Incentives ──
   let incentives = 0;
@@ -1487,7 +1491,7 @@ function calc() {
 
   // ── Totals ──
   const acq = v('acq');
-  const direct = acq + mm + carpool + shuttle + pulse + incentives + desk + parking + sharing;
+  const direct = acq + mm + carpool + shuttle + pulse + incentives + desk + parking + sharing + advice;
   const ohAmt = direct * oh;
   const cost = direct + ohAmt;
   const marginAmt = mg < 1 ? cost * (mg / (1 - mg)) : 0;
@@ -1497,7 +1501,7 @@ function calc() {
 
   // ── Update product cost badges ──
   const durLabel = `${Math.round(yrs)} yr${yrs>1?'s':''}`;
-  const allBadges = ['mm-cost-header','carpool-cost','shuttle-cost','pulse-cost','incentives-cost','desk-cost','parking-cost','sharing-cost','ms-cost-header'];
+  const allBadges = ['mm-cost-header','carpool-cost','shuttle-cost','pulse-cost','incentives-cost','desk-cost','parking-cost','sharing-cost','advice-cost','ms-cost-header'];
   allBadges.forEach(id => setEl(id+'-dur', durLabel));
 
   setEl('mm-cost-header', checked('mm-on') ? fmtE(mm) : '—');
@@ -1509,7 +1513,7 @@ function calc() {
   setEl('parking-cost', checked('parking-on') ? fmtE(parking) : '—');
   setEl('sharing-cost', checked('sharing-on') ? fmtE(sharing) : '—');
   setEl('advice-cost', checked('advice-on') ? fmtE(advice) : '—');
-  setEl('ms-cost-header', fmtE(carpool + shuttle + pulse + incentives + desk + parking + sharing));
+  setEl('ms-cost-header', fmtE(carpool + shuttle + pulse + incentives + desk + parking + sharing + advice));
 
   // ── Summary lines ──
   const lines = [
@@ -1522,6 +1526,7 @@ function calc() {
     ['DeskReservation', desk, checked('desk-on')],
     ['OfficeParking', parking, checked('parking-on')],
     ['Exclusive Sharing', sharing, checked('sharing-on')],
+    ['Advice', advice, checked('advice-on')],
   ].filter(l => l[2] && l[1] > 0);
 
   let html = lines.map(l => `<div class="sum-line"><span class="lbl">${l[0]}</span><span class="amt">${fmtE(l[1])}</span></div>`).join('');
@@ -1593,6 +1598,7 @@ function renderProductPriceInputs() {
     {id:'desk', label:'DeskReservation', on: document.getElementById('desk-on')?.checked},
     {id:'parking', label:'OfficeParking', on: document.getElementById('parking-on')?.checked},
     {id:'sharing', label:'Exclusive Sharing', on: document.getElementById('sharing-on')?.checked},
+    {id:'advice', label:'Advice', on: document.getElementById('advice-on')?.checked},
   ].filter(p => p.on);
 
   // Preserve existing values
