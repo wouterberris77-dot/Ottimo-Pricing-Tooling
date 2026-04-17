@@ -1837,19 +1837,25 @@ function calcTimeSummary() {
 
   // Mobility Management
   if (checked('mm-on')) {
-    const amH = v('mm-h1') + v('mm-h2'); // product meetings + PSCL writing
+    const mmAM   = v('mm-h1');           // product meeting hours
+    const mmPSCL = v('mm-h2');           // PSCL writing hours
+    const amH = mmAM + mmPSCL;
     totalAM += amH;
-    lines.push({ lbl: 'Mobility Management', am: amH, sup: 0 });
+    lines.push({ lbl: 'Mobility Management', am: mmAM, pscl: mmPSCL, sup: 0 });
   }
 
   // MMA
   if (checked('mma-on')) {
+    const extraEmployers = Math.max(0, Math.round(v('mma-employers')) - 1);
+    const mmPSCL_mma = v('mm-h2') * (extraEmployers + 1); // PSCL for all employers
+    const mmAM_mma   = v('mm-h1') * (extraEmployers + 1); // AM meetings for all employers
     const visits = v('mma-visits');
-    const amH = visits * v('mma-visit-hours') * v('mma-visit-persons')
-              + v('mma-online-persons') * v('mma-online-meetings') * v('mma-online-hours')
-              + v('mma-extra-hours');
+    const visitH = visits * v('mma-visit-hours') * v('mma-visit-persons')
+                 + v('mma-online-persons') * v('mma-online-meetings') * v('mma-online-hours')
+                 + v('mma-extra-hours');
+    const amH = mmAM_mma + mmPSCL_mma + visitH;
     totalAM += amH;
-    lines.push({ lbl: "Mobility Management D'Area", am: amH, sup: 0 });
+    lines.push({ lbl: "Mobility Management D'Area", am: mmAM_mma, pscl: mmPSCL_mma, visitH: visitH, sup: 0 });
   }
 
   // Standard Mobility Services products
@@ -1894,13 +1900,15 @@ function calcTimeSummary() {
   }
 
   container.innerHTML = lines.map(l => {
-    const total = l.am + l.sup;
-    const amColor = l.am > 40 ? '#fca5a5' : l.am > 20 ? '#fcd34d' : '#6ee7b7';
-    const supColor = l.sup > 40 ? '#fca5a5' : l.sup > 20 ? '#fcd34d' : '#9e9c97';
+    const amColor   = l.am   > 40 ? '#fca5a5' : l.am   > 20 ? '#fcd34d' : '#6ee7b7';
+    const psclColor = (l.pscl||0) > 40 ? '#fca5a5' : (l.pscl||0) > 20 ? '#fcd34d' : '#a5b4fc';
+    const supColor  = l.sup  > 40 ? '#fca5a5' : l.sup  > 20 ? '#fcd34d' : '#9e9c97';
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:11px;">
       <span style="color:#9e9c97;font-family:'Courier New',monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.lbl}</span>
-      <span style="display:flex;gap:8px;flex-shrink:0;margin-left:8px;">
-        <span title="AM hours/yr" style="color:${amColor};font-family:'Courier New',monospace;">${Math.round(l.am)}h AM</span>
+      <span style="display:flex;gap:6px;flex-shrink:0;margin-left:6px;">
+        ${l.am > 0 ? `<span title="AM hours/yr" style="color:${amColor};font-family:'Courier New',monospace;">${Math.round(l.am)}h AM</span>` : ''}
+        ${(l.pscl||0) > 0 ? `<span title="PSCL writing hours/yr" style="color:${psclColor};font-family:'Courier New',monospace;">${Math.round(l.pscl)}h PSCL</span>` : ''}
+        ${(l.visitH||0) > 0 ? `<span title="Visit/meeting hours/yr" style="color:#6ee7b7;font-family:'Courier New',monospace;">${Math.round(l.visitH)}h visits</span>` : ''}
         ${l.sup > 0 ? `<span title="Support hours/yr" style="color:${supColor};font-family:'Courier New',monospace;">${Math.round(l.sup)}h sup</span>` : ''}
       </span>
     </div>`;
