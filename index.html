@@ -786,12 +786,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     margin-bottom: 12px;
     overflow: hidden;
   }
-  .product-card.disabled .product-card-header { opacity: 0.5; }
-  .product-card.disabled .product-body { opacity: 0.35; pointer-events: none; }
-  .product-card.disabled .product-card-header .switch { opacity: 1 !important; pointer-events: all !important; }
-  .card.disabled .card-header { opacity: 0.5; }
-  .card.disabled .collapse-content { opacity: 0.35; pointer-events: none; }
-  .card.disabled .product-toggle { opacity: 1 !important; pointer-events: all !important; }
+  .product-card.disabled { opacity: 0.45; }
+  .product-card.disabled .product-card-header .switch { opacity: 1 !important; }
+  .card.disabled { opacity: 0.45; }
+  .card.disabled .product-toggle { opacity: 1 !important; }
   .product-card-header {
     display: flex;
     align-items: center;
@@ -948,7 +946,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 </div>
 
 <!-- MOBILITY MANAGEMENT -->
-<div class="card disabled" id="mm-card">
+<div class="card" id="mm-card">
   <div class="card-header" onclick="toggleCollapse('mm-body')">
     <div class="card-title">
       <h2>Mobility Management</h2>
@@ -999,7 +997,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
 
 <!-- MOBILITY MANAGEMENT D'AREA -->
-<div class="card disabled" id="mma-card">
+<div class="card" id="mma-card">
   <div class="card-header" onclick="toggleCollapse('mma-body')">
     <div class="card-title">
       <h2>Mobility Management D'Area</h2>
@@ -1130,7 +1128,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   <div class="collapse-content open" id="ms-body">
 
     <!-- CARPOOL -->
-    <div class="product-card disabled" id="pc-carpool">
+    <div class="product-card" id="pc-carpool">
       <div class="product-card-header" onclick="toggleProduct('carpool')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="carpool-on" onchange="calc()">
@@ -1146,7 +1144,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- SHUTTLE -->
-    <div class="product-card disabled" id="pc-shuttle">
+    <div class="product-card" id="pc-shuttle">
       <div class="product-card-header" onclick="toggleProduct('shuttle')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="shuttle-on" onchange="calc()">
@@ -1162,7 +1160,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- PULSE -->
-    <div class="product-card disabled" id="pc-pulse">
+    <div class="product-card" id="pc-pulse">
       <div class="product-card-header" onclick="toggleProduct('pulse')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="pulse-on" onchange="calc()">
@@ -1178,7 +1176,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- INCENTIVES -->
-    <div class="product-card disabled" id="pc-incentives">
+    <div class="product-card" id="pc-incentives">
       <div class="product-card-header" onclick="toggleProduct('incentives')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="incentives-on" onchange="calc()">
@@ -1194,7 +1192,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- DESKRESERVATION -->
-    <div class="product-card disabled" id="pc-desk">
+    <div class="product-card" id="pc-desk">
       <div class="product-card-header" onclick="toggleProduct('desk')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="desk-on" onchange="calc()">
@@ -1210,7 +1208,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- OFFICEPARKING -->
-    <div class="product-card disabled" id="pc-parking">
+    <div class="product-card" id="pc-parking">
       <div class="product-card-header" onclick="toggleProduct('parking')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="parking-on" onchange="calc()">
@@ -1226,7 +1224,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
     <!-- EXCLUSIVE SHARING -->
-    <div class="product-card disabled" id="pc-sharing">
+    <div class="product-card" id="pc-sharing">
       <div class="product-card-header" onclick="toggleProduct('sharing')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="sharing-on" onchange="calc()">
@@ -1242,7 +1240,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     </div>
 
   <!-- ADVICE -->
-    <div class="product-card disabled" id="pc-advice">
+    <div class="product-card" id="pc-advice">
       <div class="product-card-header" onclick="toggleProduct('advice')">
         <label class="switch" onclick="event.stopPropagation()">
           <input type="checkbox" id="advice-on" onchange="calc()">
